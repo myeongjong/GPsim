@@ -7,12 +7,13 @@ The R package `GPsim` is a simulation framework for generating
 realizations of both stationary and nonstationary Gaussian Processes
 (GPs), which allows users to make use of a wide range of simulation
 designs including arbitrary domains and user-defined covariance models.
-<span style="color:red">This r package is not available now.</span>
+This R package is NOT available now.
 
 Installation
 ------------
 
 ``` install
+library(devtools)
 devtools::install_github("myeongjong/GPsim")
 ```
 
@@ -22,3 +23,9 @@ Example
 ``` r
 1+1
 ```
+
+License
+-------
+
+This package is free and open source software, licensed under GPL
+($&gt;=$2).
