@@ -13,7 +13,7 @@ Installation
 ------------
 
 ``` install
-library(devtools)
+# install.packages("devtools")
 devtools::install_github("myeongjong/GPsim")
 ```
 
@@ -28,4 +28,4 @@ License
 -------
 
 This package is free and open source software, licensed under GPL
-($&gt;=$2).
+(&gt;=2).
