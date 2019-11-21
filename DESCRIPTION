@@ -1,12 +1,13 @@
 Package: GPsim
 Type: Package
-Title: What the Package Does (Title Case)
+Title: An R package for simulating Gaussian Processes
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Author: Myeongjong Kang
+Maintainer: Myeongjong Kang <kmj.stat@gmail.com>
+Description: The R package GPsim is a simulation framework for generating realizations of Gaussian Processes (GPs), which allows users to make use of a wide range of simulation designs including arbitrary domains and user-defined covariance models. It also allows users to use not only classical covariance functions but also nonstationary covariance functions with a minimal effort of programming. Moreover, the correlation-based Vecchia approximation method is implemented as a baseline model only for known-parameters GPs cases.
+License: GPL-3
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.1.1
+Imports: 
+    RandomFields
