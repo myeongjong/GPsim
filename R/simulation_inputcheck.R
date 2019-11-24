@@ -15,6 +15,7 @@
     if(class(n) != 'numeric') stop("The number of locations (n) is not numeric.")
     if(round(n) != n) stop("The number of locations (n) is not an integer.")
     if(n <= 0) stop("The number of locations (n) is not a positive integer.")
+    if(n == 1) stop("The number of locations (n) must be larger than 1.")
   }
 
   if( !is.null(p) ) {
@@ -74,7 +75,7 @@
     }
 
   } else {
-    stop("The input locs is not valid. Please read the description.")
+    stop("The input locs is not valid. Please refer the description.")
   }
 
   return(list(locs = locs, n = n, p = p))
