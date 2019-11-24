@@ -2,38 +2,59 @@
 % Please edit documentation in R/main_simulation.R
 \name{simulate_gp_brute}
 \alias{simulate_gp_brute}
-\title{Naive brute force simulation of gaussian processes}
+\title{Brute-force simulation of gaussian processes}
 \usage{
-simulate_gp_brute(n, p, loc.method = "random", covmodel,
-  covparms = NULL, nugget = 0)
+simulate_gp_brute(locs = NULL, n = NULL, p = NULL,
+  meanmodel = function(loc, meanparms) 0, meanparms = NULL,
+  covmodel = function(loc1, loc2, covparms) ifelse(identical(loc1, loc2),
+  1, 0), covparms = NULL, seed = NULL)
 }
 \arguments{
-\item{n}{the number of locations}
+\item{locs}{locations matrix or how to select locations from the unit box}
 
-\item{p}{the dimension of domain}
+\item{n}{number of locations}
 
-\item{loc.method}{the method to choose locations. The default method \code{"random"} uses randomly selected locations. The alternative \code{"grid"} uses grids as locations.}
+\item{p}{dimension of the unit box}
+
+\item{meanmodel}{mean model}
+
+\item{meanparms}{mean parameters as a vector}
 
 \item{covmodel}{covariance model}
 
 \item{covparms}{covariance parameters as a vector}
 
-\item{nugget}{either a single (constant) nugget or a vector of nugget terms for the observations}
+\item{seed}{random seed}
 }
 \value{
-\code{simulate_gp_brute} returns
+\code{simulate_gp_brute} returns a list containing
 \itemize{
-      \item{\code{n}: }{the number of locations}
-      \item{\code{p}: }{the dimension of domain}
-      \item{\code{locs}: }{a \code{n} x \code{p} matrix of locations. Each row of \code{locs} contains a location.}
-      \item{\code{sigma}: }{covariance matrix with respect to \code{locs}}
-      \item{\code{y}: }{a \code{n}-dimensional vector of the user-specific gaussian process generated at \code{locs}}
+      \item{seed: }{random seed}
+      \item{n: }{number of locations}
+      \item{p: }{dimension of the unit box}
+      \item{locs: }{a \code{n} x \code{p} matrix of locations}
+      \item{meanvec: }{mean values at locations}
+      \item{covmat: }{covariance matrix}
+      \item{y: }{generated gaussian process at locations}
 }
 }
 \description{
-Naive brute force simulation of gaussian processes
+Brute-force simulation of gaussian processes
 }
 \examples{
-out <- simulate_gp_brute(n = 5^2, p = 2, loc.method = "grid", covmodel = diag(5^2), covparms = NULL, nugget = 0)
-out
+# The following arguments give the exact same result:
+
+simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = function(loc, meanparms) 0, meanparms = NULL, covmodel = function(loc1, loc2, covparms) ifelse(identical(loc1, loc2), 1, 0), covparms = NULL, seed = 1)$y
+
+simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = matrix(0, 3, 1), meanparms = NULL, covmodel = diag(3), covparms = NULL, seed = 1)$y
+
+simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = matrix(0, 1, 3), meanparms = NULL, covmodel = diag(3), covparms = NULL, seed = 1)$y
+
+simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = as.data.frame(matrix(0, 3, 1)), meanparms = NULL, covmodel = as.data.frame(diag(3)), covparms = NULL, seed = 1)$y
+
+simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = as.data.frame(matrix(0, 1, 3)), meanparms = NULL, covmodel = as.data.frame(diag(3)), covparms = NULL, seed = 1)$y
+
+simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = matrix(0, 3, 1), meanparms = NULL, covmodel = rep(1, 3), covparms = NULL, seed = 1)$y
+
+simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = matrix(0, 1, 3), meanparms = NULL, covmodel = 'identity', covparms = NULL, seed = 1)$y
 }

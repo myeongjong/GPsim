@@ -8,74 +8,126 @@
 ###
 ####################################################################################
 
-#' @title Naive brute force simulation of gaussian processes
+
+#' @title Brute-force simulation of gaussian processes
 #'
-#' @description Naive brute force simulation of gaussian processes
+#' @description Brute-force simulation of gaussian processes
 #'
-#' @param n the number of locations
-#' @param p the dimension of domain
-#' @param loc.method the method to choose locations. The default method \code{"random"} uses randomly selected locations. The alternative \code{"grid"} uses grids as locations.
+#' @param locs locations matrix or how to select locations from the unit box
+#' @param n number of locations
+#' @param p dimension of the unit box
+#' @param meanmodel mean model
+#' @param meanparms mean parameters as a vector
 #' @param covmodel covariance model
 #' @param covparms covariance parameters as a vector
-#' @param nugget either a single (constant) nugget or a vector of nugget terms for the observations
+#' @param seed random seed
 #'
-#' @return \code{simulate_gp_brute} returns
+#' @return \code{simulate_gp_brute} returns a list containing
 #' \itemize{
-#'       \item{\code{n}: }{the number of locations}
-#'       \item{\code{p}: }{the dimension of domain}
-#'       \item{\code{locs}: }{a \code{n} x \code{p} matrix of locations. Each row of \code{locs} contains a location.}
-#'       \item{\code{sigma}: }{covariance matrix with respect to \code{locs}}
-#'       \item{\code{y}: }{a \code{n}-dimensional vector of the user-specific gaussian process generated at \code{locs}}
+#'       \item{seed: }{random seed}
+#'       \item{n: }{number of locations}
+#'       \item{p: }{dimension of the unit box}
+#'       \item{locs: }{a \code{n} x \code{p} matrix of locations}
+#'       \item{meanvec: }{mean values at locations}
+#'       \item{covmat: }{covariance matrix}
+#'       \item{y: }{generated gaussian process at locations}
 #' }
 #' @export
 #'
 #' @examples
-#' out <- simulate_gp_brute(n = 5^2, p = 2, loc.method = "grid", covmodel = diag(5^2), covparms = NULL, nugget = 0)
-#' out
-simulate_gp_brute <- function(n, p, loc.method = "random", covmodel, covparms = NULL, nugget = 0) {
+#' # The following arguments give the exact same result:
+#'
+#' simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = function(loc, meanparms) 0, meanparms = NULL, covmodel = function(loc1, loc2, covparms) ifelse(identical(loc1, loc2), 1, 0), covparms = NULL, seed = 1)$y
+#'
+#' simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = matrix(0, 3, 1), meanparms = NULL, covmodel = diag(3), covparms = NULL, seed = 1)$y
+#'
+#' simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = matrix(0, 1, 3), meanparms = NULL, covmodel = diag(3), covparms = NULL, seed = 1)$y
+#'
+#' simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = as.data.frame(matrix(0, 3, 1)), meanparms = NULL, covmodel = as.data.frame(diag(3)), covparms = NULL, seed = 1)$y
+#'
+#' simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = as.data.frame(matrix(0, 1, 3)), meanparms = NULL, covmodel = as.data.frame(diag(3)), covparms = NULL, seed = 1)$y
+#'
+#' simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = matrix(0, 3, 1), meanparms = NULL, covmodel = rep(1, 3), covparms = NULL, seed = 1)$y
+#'
+#' simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = matrix(0, 1, 3), meanparms = NULL, covmodel = 'identity', covparms = NULL, seed = 1)$y
+simulate_gp_brute <- function(locs = NULL, n = NULL, p = NULL, meanmodel = function(loc, meanparms) 0, meanparms = NULL, covmodel = function(loc1, loc2, covparms) ifelse(identical(loc1, loc2), 1, 0), covparms = NULL, seed = NULL) {
 
-  if(loc.method == "grid") {
-    grid.oneside    <- seq(from = 0, to = 1, length.out = n^(1/p))
-    locs            <- expand.grid( as.data.frame(matrix(grid.oneside, nrow = length(grid.oneside), ncol = p, byrow = F)) )
+  if(!is.null(seed)) {
+    seed.old <- .Random.seed
+    on.exit( { .Random.seed <<- seed.old } )
+    set.seed(seed)
+  }
 
-    if(n != nrow(locs)) {
-      n             <- nrow(locs)
-      message("Warning: The arguments n and p are not compatible. n will be ", n, ".")
+  locsnp <- .input_check_locs_n_p(locs, n, p)
+
+  if(is.function(meanmodel)) {
+
+    meanlocs <- apply(X = locsnp$locs, MARGIN = 1, FUN = function(x) meanmodel(loc = x, meanparms = meanparms))
+
+  } else if(is.matrix(meanmodel) | is.data.frame(meanmodel)) {
+
+    if(identical(as.numeric(dim(meanmodel)), c(locsnp$n, 1)) | identical(as.numeric(dim(meanmodel)), c(1, locsnp$n))) {
+      meanmodel <- as.matrix(meanmodel)
+      meanlocs <- as.numeric(meanmodel)
+    } else {
+      stop("The mean model (meanmodel) is not compatible with the locations (locs).")
     }
 
-  } else if(loc.method == "random") {
-    locs            <- as.data.frame(matrix(runif(n * p, 0, 1), n, p))
+  } else if(is.numeric(meanmodel) | is.integer(meanmodel)) {
+
+    if(length(meanmodel) == locsnp$n) {
+      meanlocs <- as.numeric(meanmodel)
+    } else {
+      stop("The mean model (meanmodel) is not compatible with the locations (locs).")
+    }
+
   } else {
-    message("Warning: The argument loc.method is not valid. Locations are randomly selected.")
-    locs            <- as.data.frame(matrix(runif(n * p, 0, 1), n, p))
+
+    stop("The mean model (meanmodel) is not valid. Please refer the description.")
+
   }
 
   if(is.function(covmodel)) {
-    sigma           <- covmodel(locs1 = locs, locs2 = locs, covparms = covparms)
-  } else if(is.matrix(covmodel)) {
-    sigma           <- covmodel
+
+    ind <- expand.grid(seq(locsnp$n), seq(locsnp$n))
+    covlocs <- apply(X = ind, MARGIN = 1, FUN = function(x) covmodel(loc1 = as.numeric(locsnp$locs[x[1], ]), loc2 = as.numeric(locsnp$locs[x[2], ]), covparms = covparms))
+    covlocs <- matrix(covlocs, locsnp$n, locsnp$n, byrow = F)
+
+  } else if(is.matrix(covmodel) | is.data.frame(covmodel)) {
+
+    if(identical(as.numeric(dim(covmodel)), c(locsnp$n, locsnp$n))) {
+      covlocs <- as.matrix(covmodel)
+    } else {
+      stop("The covariance model (covmodel) is not compatible with the locations (locs).")
+    }
+
+  } else if(is.numeric(covmodel) | is.integer(covmodel)) {
+
+    if(length(covmodel) == locsnp$n) {
+      covlocs <- diag(as.numeric(covmodel))
+    } else {
+      stop("The covariance model (covmodel) is not valid. Please refer the description.")
+    }
+
+  } else if(covmodel == "identity"){
+
+    covlocs <- diag(locsnp$n)
+
   } else {
-    message("Warning: The argument covmodel is not valid. The covariance matrix will be an identity matrix.")
-    sigma           <- diag(n)
+
+    stop("The covariance model (covmodel) is not valid. Please refer the description.")
+
   }
 
-  y                 <-  as.numeric(t(chol(sigma)) %*% rnorm(n))
+  y <- meanlocs + as.numeric(t(chol(covlocs)) %*% rnorm(locsnp$n))
 
-  return(list(n = n, p = p, locs = locs, sigma = sigma, y = y))
+  return(list(seed = seed, n = locsnp$n, p = locsnp$p, locs = locsnp$locs, meanvec = meanlocs, covmat = covlocs, y = y))
 }
 
-#' Title
-#'
-#' @param temp1
-#' @param temp2
-#'
-#' @return
-#' @export
-#'
-#' @examples
 simulate_gp <- function(temp1, temp2) {
   return(temp1 + temp2)
 }
+
 
 .simulate_gp_stationary <- function() {
   return(1)
