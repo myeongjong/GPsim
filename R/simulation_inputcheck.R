@@ -35,22 +35,61 @@
 
   } else if(is.matrix(locs)) {
 
-    if( !(is.null(n) & is.null(p)) ) {
-      message("Warning: You provide not only location matrix (locs) but also either the number of locations (n) or the dimension of domain (p). The locations you provided are used.")
+    if(is.null(n) & is.null(p)) {
+      message("Note: Both the number of locations (n) and the dimension of domain (p) are defined with respect to the given locations (locs).")
+      n <- nrow(locs)
+      p <- ncol(locs)
+    } else if(is.null(n) & !is.null(p)) {
+      if(ncol(locs) == p) {
+        message("Note: The number of locations (n) is defined with respect to the given locations (locs).")
+        n <- nrow(locs)
+      } else {
+        stop("The dimension of domain (p) is not compatible with the locations (locs).")
+      }
+    } else if(!is.null(n) & is.null(p)) {
+      if(nrow(locs) == n) {
+        message("Note: The dimension of domain (p) is defined with respect to the given locations (locs).")
+        p <- ncol(locs)
+      } else {
+        stop("The number of locations (n) is not compatible with the locations (locs).")
+      }
+    } else if(!( is.null(n) | is.null(p))){
+      if(identical(as.numeric(dim(locs)), c(n, p))) {
+        message("Note: Neither the number of locations (n) nor the dimension of domain (p) are necessary.")
+      } else {
+        stop("The locations (locs) are not compatible with either the number of locations (n) or the dimension of domain (p).")
+      }
     }
 
-    locs      <- as.data.frame(locs)
-    n         <- nrow(locs)
-    p         <- ncol(locs)
+    locs <- as.data.frame(locs)
 
   } else if(is.data.frame(locs)) {
 
-    if( !(is.null(n) & is.null(p)) ) {
-      message("Warning: You provide not only location data.frame (locs) but also either the number of locations (n) or the dimension of domain (p). The locations you provided are used.")
+    if(is.null(n) & is.null(p)) {
+      message("Note: Both the number of locations (n) and the dimension of domain (p) are defined with respect to the given locations (locs).")
+      n <- nrow(locs)
+      p <- ncol(locs)
+    } else if(is.null(n) & !is.null(p)) {
+      if(ncol(locs) == p) {
+        message("Note: The number of locations (n) is defined with respect to the given locations (locs).")
+        n <- nrow(locs)
+      } else {
+        stop("The dimension of domain (p) is not compatible with the locations (locs).")
+      }
+    } else if(!is.null(n) & is.null(p)) {
+      if(nrow(locs) == n) {
+        message("Note: The dimension of domain (p) is defined with respect to the given locations (locs).")
+        p <- ncol(locs)
+      } else {
+        stop("The number of locations (n) is not compatible with the locations (locs).")
+      }
+    } else if(!( is.null(n) | is.null(p))){
+      if(identical(as.numeric(dim(locs)), c(n, p))) {
+        message("Note: Neither the number of locations (n) nor the dimension of domain (p) are necessary.")
+      } else {
+        stop("The locations (locs) are not compatible with either the number of locations (n) or the dimension of domain (p).")
+      }
     }
-
-    n         <- nrow(locs)
-    p         <- ncol(locs)
 
   } else if(locs == "grid") {
 
@@ -78,5 +117,6 @@
     stop("The input locs is not valid. Please refer the description.")
   }
 
+  colnames(locs) <- paste0('s', seq(p))
   return(list(locs = locs, n = n, p = p))
 }
