@@ -8,6 +8,35 @@
 ###
 ####################################################################################
 
-test_that("multiplication works", {
-  expect_equal(2 * 2, 4)
+test_that("locs, n, and p", {
+  expect_equal(.input_check_locs_n_p(locs = matrix(0, 3, 2), n = NULL, p = NULL),
+               .input_check_locs_n_p(locs = matrix(0, 3, 2), n = 3, p = 2))
+  expect_equal(.input_check_locs_n_p(locs = matrix(0, 3, 2), n = NULL, p = NULL),
+               .input_check_locs_n_p(locs = matrix(0, 3, 2), n = 3, p = NULL))
+  expect_equal(.input_check_locs_n_p(locs = matrix(0, 3, 2), n = NULL, p = NULL),
+               .input_check_locs_n_p(locs = matrix(0, 3, 2), n = NULL, p = 2))
+  expect_equal(as.matrix(.input_check_locs_n_p(locs = 'grid', n = 3^2, p = 2)$locs),
+               as.matrix(.input_check_locs_n_p(locs = expand.grid(c(0, 0.5, 1), c(0, 0.5, 1)), n = NULL, p = NULL)$locs))
+  expect_identical(tryCatch(.input_check_locs_n_p(locs = matrix(0, 3, 2), n = NULL, p = 1), error = function(e) TRUE), TRUE)
+  expect_identical(tryCatch(.input_check_locs_n_p(locs = matrix(0, 3, 2), n = 4, p = NULL), error = function(e) TRUE), TRUE)
+  expect_identical(tryCatch(.input_check_locs_n_p(locs = matrix(0, 3, 2), n = 3, p = 1), error = function(e) TRUE), TRUE)
+  expect_identical(tryCatch(.input_check_locs_n_p(locs = matrix(0, 3, 2), n = 4, p = 2), error = function(e) TRUE), TRUE)
 })
+
+test_that("availability of arguments", {
+  expect_equal(simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = function(loc, meanparms) 0, meanparms = NULL, covmodel = function(loc1, loc2, covparms) ifelse(identical(loc1, loc2), 1, 0), covparms = NULL, seed = 1)$y,
+               simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = function(loc, meanparms) 0, meanparms = NULL, covmodel = function(loc1, loc2, covparms) ifelse(identical(loc1, loc2), 1, 0), covparms = NULL, seed = 1)$y)
+  expect_equal(simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = function(loc, meanparms) 0, meanparms = NULL, covmodel = function(loc1, loc2, covparms) ifelse(identical(loc1, loc2), 1, 0), covparms = NULL, seed = 1)$y,
+               simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = matrix(0, 3, 1), meanparms = NULL, covmodel = diag(3), covparms = NULL, seed = 1)$y)
+  expect_equal(simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = function(loc, meanparms) 0, meanparms = NULL, covmodel = function(loc1, loc2, covparms) ifelse(identical(loc1, loc2), 1, 0), covparms = NULL, seed = 1)$y,
+               simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = matrix(0, 1, 3), meanparms = NULL, covmodel = diag(3), covparms = NULL, seed = 1)$y)
+  expect_equal(simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = function(loc, meanparms) 0, meanparms = NULL, covmodel = function(loc1, loc2, covparms) ifelse(identical(loc1, loc2), 1, 0), covparms = NULL, seed = 1)$y,
+               simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = as.data.frame(matrix(0, 3, 1)), meanparms = NULL, covmodel = as.data.frame(diag(3)), covparms = NULL, seed = 1)$y)
+  expect_equal(simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = function(loc, meanparms) 0, meanparms = NULL, covmodel = function(loc1, loc2, covparms) ifelse(identical(loc1, loc2), 1, 0), covparms = NULL, seed = 1)$y,
+               simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = as.data.frame(matrix(0, 1, 3)), meanparms = NULL, covmodel = as.data.frame(diag(3)), covparms = NULL, seed = 1)$y)
+  expect_equal(simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = function(loc, meanparms) 0, meanparms = NULL, covmodel = function(loc1, loc2, covparms) ifelse(identical(loc1, loc2), 1, 0), covparms = NULL, seed = 1)$y,
+               simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = matrix(0, 3, 1), meanparms = NULL, covmodel = rep(1, 3), covparms = NULL, seed = 1)$y)
+  expect_equal(simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = function(loc, meanparms) 0, meanparms = NULL, covmodel = function(loc1, loc2, covparms) ifelse(identical(loc1, loc2), 1, 0), covparms = NULL, seed = 1)$y,
+               simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = matrix(0, 1, 3), meanparms = NULL, covmodel = 'identity', covparms = NULL, seed = 1)$y)
+})
+
