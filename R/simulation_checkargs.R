@@ -9,7 +9,7 @@
 ####################################################################################
 
 
-.input_check_locs_n_p <- function(locs, n, p) {
+.checkargs_locsnp <- function(locs, n, p) {
 
   if( !is.null(n) ) {
     if(class(n) != 'numeric') stop("The number of locations (n) is not numeric.")
