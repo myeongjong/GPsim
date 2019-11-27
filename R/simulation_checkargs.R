@@ -157,3 +157,47 @@
   return(meanlocs)
 
 }
+
+
+.checkargs_covmodel <- function(covmodel, covparms, locs, n, p) {
+
+  if(is.function(covmodel)) {
+
+    ind <- expand.grid(seq(n), seq(n))
+    covlocs <- tryCatch(apply(X = ind, MARGIN = 1, FUN = function(x) covmodel(loc1 = as.numeric(locs[x[1], ]), loc2 = as.numeric(locs[x[2], ]), covparms = covparms)), error = function(e) "Oops")
+
+    if(identical(covlocs, "Oops")) stop("Either the covariance function (covmodel) or its parameters (covparms) do not work properly.")
+
+    covlocs <- matrix(covlocs, n, n, byrow = F)
+
+  } else if(is.matrix(covmodel) | is.data.frame(covmodel)) {
+
+    if(identical(as.numeric(dim(covmodel)), c(n, n))) {
+      covlocs <- as.matrix(covmodel)
+    } else {
+      stop("The covariance matrix (covmodel) is not compatible with the locations (locs).")
+    }
+
+  } else if(is.numeric(covmodel) | is.integer(covmodel)) {
+
+    if(length(covmodel) == n) {
+      covlocs <- diag(covmodel)
+    } else if(length(covmodel) == 1) {
+      covlocs <- diag(covmodel, n)
+    } else {
+      stop("The diagonal entries of the covariance matrix (covmodel) are not valid.")
+    }
+
+  } else if(covmodel == "identity"){
+
+    covlocs <- diag(n)
+
+  } else {
+
+    stop("The covariance model (covmodel) is not valid. Please refer the description.")
+
+  }
+
+  dimnames(covlocs) <- NULL
+  return(covlocs)
+}
