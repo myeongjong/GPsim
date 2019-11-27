@@ -23,6 +23,23 @@ test_that("locs, n, and p", {
   expect_identical(tryCatch(.checkargs_locsnp(locs = matrix(0, 3, 2), n = 4, p = 2), error = function(e) TRUE), TRUE)
 })
 
+test_that("meanmodel", {
+  expect_equal(.checkargs_meanmodel(meanmodel = function(loc, meanparms) 0, meanparms = 0, locs = matrix(0, 3, 2), n = 3, p = 2),
+               .checkargs_meanmodel(meanmodel = matrix(0, 3, 1), meanparms = 0, locs = matrix(0, 3, 2), n = 3, p = 2))
+  expect_equal(.checkargs_meanmodel(meanmodel = function(loc, meanparms) 0, meanparms = 0, locs = matrix(0, 3, 2), n = 3, p = 2),
+               .checkargs_meanmodel(meanmodel = as.data.frame(matrix(0, 3, 1)), meanparms = 0, locs = matrix(0, 3, 2), n = 3, p = 2))
+  expect_equal(.checkargs_meanmodel(meanmodel = function(loc, meanparms) 0, meanparms = 0, locs = matrix(0, 3, 2), n = 3, p = 2),
+               .checkargs_meanmodel(meanmodel = matrix(0, 1, 3), meanparms = 0, locs = matrix(0, 3, 2), n = 3, p = 2))
+  expect_equal(.checkargs_meanmodel(meanmodel = function(loc, meanparms) 0, meanparms = 0, locs = matrix(0, 3, 2), n = 3, p = 2),
+               .checkargs_meanmodel(meanmodel = as.data.frame(matrix(0, 1, 3)), meanparms = 0, locs = matrix(0, 3, 2), n = 3, p = 2))
+  expect_equal(.checkargs_meanmodel(meanmodel = function(loc, meanparms) 0, meanparms = 0, locs = matrix(0, 3, 2), n = 3, p = 2),
+               .checkargs_meanmodel(meanmodel = 0, meanparms = 0, locs = matrix(0, 3, 2), n = 3, p = 2))
+  expect_identical(tryCatch(.checkargs_meanmodel(meanmodel = matrix(0, 2, 1), meanparms = 0, locs = matrix(0, 3, 2), n = 3, p = 2), error = function(e) TRUE), TRUE)
+  expect_identical(tryCatch(.checkargs_meanmodel(meanmodel = matrix(0, 1, 2), meanparms = 0, locs = matrix(0, 3, 2), n = 3, p = 2), error = function(e) TRUE), TRUE)
+  expect_identical(tryCatch(.checkargs_meanmodel(meanmodel = matrix(0, 2, 3), meanparms = 0, locs = matrix(0, 3, 2), n = 3, p = 2), error = function(e) TRUE), TRUE)
+  expect_identical(tryCatch(.checkargs_meanmodel(meanmodel = 'a', meanparms = 0, locs = matrix(0, 3, 2), n = 3, p = 2), error = function(e) TRUE), TRUE)
+})
+
 test_that("availability of arguments", {
   set.seed(2)
   expect_equal(simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = function(loc, meanparms) 0, meanparms = NULL, covmodel = function(loc1, loc2, covparms) ifelse(identical(loc1, loc2), 1, 0), covparms = NULL, seed = 1)$y,
