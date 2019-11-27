@@ -120,3 +120,40 @@
   colnames(locs) <- paste0('s', seq(p))
   return(list(locs = locs, n = n, p = p))
 }
+
+
+.checkargs_meanmodel <- function(meanmodel, meanparms, locs, n, p) {
+
+  if(is.function(meanmodel)) {
+
+    meanlocs <- tryCatch(apply(X = locs, MARGIN = 1, FUN = function(x) meanmodel(loc = x, meanparms = meanparms)), error = function(e) "Oops")
+
+    if(identical(meanlocs, "Oops")) stop("Either the mean function (meanmodel) or its parameters (meanparms) do not work properly.")
+
+  } else if(is.matrix(meanmodel) | is.data.frame(meanmodel)) {
+
+    if(identical(as.numeric(dim(meanmodel)), c(n, 1)) | identical(as.numeric(dim(meanmodel)), c(1, n))) {
+      meanlocs <- as.numeric(as.matrix(meanmodel))
+    } else {
+      stop("The mean vector (meanmodel) is not compatible with the locations (locs).")
+    }
+
+  } else if(is.numeric(meanmodel) | is.integer(meanmodel)) {
+
+    if(length(meanmodel) == n) {
+      meanlocs <- as.numeric(meanmodel)
+    } else if(length(meanmodel) == 1) {
+      meanlocs <- rep(meanmodel, n)
+    } else {
+      stop("The total mean (meanmodel) is not compatible with the locations (locs).")
+    }
+
+  } else {
+
+    stop("The mean model (meanmodel) is not valid. Please refer the description.")
+
+  }
+
+  return(meanlocs)
+
+}
