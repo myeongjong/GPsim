@@ -54,7 +54,7 @@
 
   covlocs.modified <- t(covfactor) %*% covfactor
 
-  err.decomp <- sqrt(sum( (covlocs - covlocs.mod)^2 ))
+  err.decomp <- sqrt(sum( (covlocs - covlocs.modified)^2 ))
   message("The decomposition error of the covariance matrix is ", err.decomp, " with respect to the Frobenius norm.")
 
   y <- meanlocs + as.numeric(t(covfactor) %*% rnorm(n))
