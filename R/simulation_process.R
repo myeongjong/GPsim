@@ -9,13 +9,16 @@
 ####################################################################################
 
 
-.process_gp <- function(meanlocs, covlocs, n, correction = NULL, tol = .Machine$double.eps) {
+.process_gp <- function(meanlocs, covlocs, n, pivot = FALSE, correction = NULL, tol = .Machine$double.eps) {
+
+  pivotvec <- NULL
 
   if(is.null(correction)) {
 
-    covfactor             <- tryCatch(chol(covlocs), error = function(e) "Oops")
-
+    covfactor             <- tryCatch(chol(x = covlocs, pivot = pivot, tol = tol), error = function(e) "Oops")
     if(identical(covfactor, "Oops")) stop("Cholesky decomposition cannnot be applied to the covariance matrix. Please specify the correction method (correction).")
+
+    pivotvec              <- attr(covfactor, "pivot")
 
   } else if(correction == "qr") {
 
@@ -24,25 +27,30 @@
 
     if(identical(covfactor, "Oops")) stop("QR decomposition cannnot be applied. Please use another correction method (correction).")
 
+    pivotvec <- NULL
+
   } else if(correction == "diag") {
 
-    covfactor             <- tryCatch(chol(covlocs + diag(tol, n)), error = function(e) "Oops")
-
+    covfactor             <- tryCatch(chol(covlocs + diag(tol, n), pivot = pivot, tol = tol), error = function(e) "Oops")
     if(identical(covfactor, "Oops")) stop("Cholesky decomposition cannnot be applied to the modified covariance matrix. Please use larger tolerance value (tol).")
+
+    if(pivot == TRUE) pivotvec    <- attr(covfactor, "pivot")
 
   } else if(correction == "type-I") {
 
     diag(covlocs)         <- pmax(abs(diag(covlocs)), tol)
-    covfactor             <- tryCatch(chol(covlocs), error = function(e) "Oops")
-
+    covfactor             <- tryCatch(chol(covlocs, pivot = pivot, tol = tol), error = function(e) "Oops")
     if(identical(covfactor, "Oops")) stop("Cholesky decomposition cannnot be applied to the modified covariance matrix. Please use larger tolerance value (tol).")
+
+    if(pivot == TRUE) pivotvec    <- attr(covfactor, "pivot")
 
   } else if(correction == "type-II") {
 
     diag(covlocs)         <- pmax(diag(covlocs), tol)
-    covfactor             <- tryCatch(chol(covlocs), error = function(e) "Oops")
-
+    covfactor             <- tryCatch(chol(covlocs, pivot = pivot, tol = tol), error = function(e) "Oops")
     if(identical(covfactor, "Oops")) stop("Cholesky decomposition cannnot be applied to the modified covariance matrix. Please use larger tolerance value (tol).")
+
+    if(pivot == TRUE) pivotvec    <- attr(covfactor, "pivot")
 
   } else if(correction == "eigen-I") {
 
@@ -62,14 +70,45 @@
 
   } else if(correction == "GMW81") {
 
-    out <- tryCatch(.algorithm_GMW81(A = covlocs, beta = NULL, tol = tol), error = function(e) "Oops")
-    covfactor <- t(diag(out$Dvec) %*% out$Lmat)
+    out <- tryCatch(.algorithm_GMW81(A = covlocs, beta = NULL, pivot = pivot, tol = tol), error = function(e) "Oops")
 
-    if(identical(covfactor, "Oops")) stop("GMW81 algorithm cannnot be applied. Please use larger tolerance value (tol).")
+    if(identical(out, "Oops")) stop("GMW81 algorithm cannnot be applied. Please use larger tolerance value (tol).")
+
+    if(pivot == FALSE) {
+
+      covfactor <- sqrt(out$Dvec) * t(out$Lmat) # U = t(out$Lmat %*% diag(sqrt(out$Dvec)))
+
+    } else if(pivot == TRUE) {
+
+      covfactor <- sqrt(out$Dvec) * t(out$Lmat)
+      covfactor <- covfactor[, out$Pvec]
+
+    } else {
+
+      stop("The argument pivot must be logical: TRUE or FALSE.")
+
+    }
 
   } else if(correction == "SE90") {
 
-    stop("Not yet.")
+    out <- tryCatch(.algorithm_SE90(A = covlocs, pivot = pivot), error = function(e) "Oops")
+
+    if(identical(out, "Oops")) stop("SE90 algorithm cannnot be applied.")
+
+    if(pivot == FALSE) {
+
+      covfactor <- sqrt(out$Dvec) * t(out$Lmat) # U = t(out$Lmat %*% diag(sqrt(out$Dvec)))
+
+    } else if(pivot == TRUE) {
+
+      covfactor <- sqrt(out$Dvec) * t(out$Lmat)
+      covfactor <- covfactor[, out$Pvec]
+
+    } else {
+
+      stop("The argument pivot must be logical: TRUE or FALSE.")
+
+    }
 
   } else if(correction == "SE99") {
 
@@ -103,59 +142,84 @@
   return(list(y = y, meanlocs = meanlocs, covlocs = covlocs, covlocs.modified = covlocs.modified, correction = correction, tol = tol))
 }
 
-.algorithm_SE <- function(A, delta) {
+.algorithm_modchol <- function(A, delta, pivot) {
 
   n <- nrow(A)
-  for(k in 1:(n-1)) {
-    A[k, k] <- sqrt(A[k, k] + delta[k])
-    A[(k+1):n, k] <- A[(k+1):n, k] / A[k, k]
-    A[(k+1):n, (k+1):n] <- A[(k+1):n, (k+1):n] - tcrossprod(A[(k+1):n, k])
+
+  if(pivot == FALSE) {
+
+    P <- NULL
+    for(k in 1:(n-1)) {
+      A[k, k] <- sqrt(A[k, k] + delta[k])
+      A[(k+1):n, k] <- A[(k+1):n, k] / A[k, k]
+      A[(k+1):n, (k+1):n] <- A[(k+1):n, (k+1):n] - tcrossprod(A[(k+1):n, k])
+    }
+
+    A[n, n] <- sqrt(A[n, n] + delta[n])
+    A <- A * !upper.tri(A)
+
+  } else {
+
+    P <- seq(n)
+    for(k in 1:(n-1)) {
+      pvt             <- which.max(diag(A)[k:n])
+      P[k:n]          <- c(P[k:n][pvt], P[k:n][-pvt])
+      A               <- A[P, P]
+
+      A[k, k] <- sqrt(A[k, k] + delta[k])
+      A[(k+1):n, k] <- A[(k+1):n, k] / A[k, k]
+      A[(k+1):n, (k+1):n] <- A[(k+1):n, (k+1):n] - tcrossprod(A[(k+1):n, k])
+    }
+
+    A[n, n] <- sqrt(A[n, n] + delta[n])
+    A <- A * !upper.tri(A)
   }
 
-  A[n, n] <- sqrt(A[n, n] + delta[n])
-  A <- A * !upper.tri(A)
-  return(A)
+  return(list(Lmat = A, Pvec = P))
 }
 
-# B <- matrix(c(2, -1, 0, -1, 2, -1, 0, -1, 2), 3, 3)
-# delta <- c(3, 1, 2)
-# temp <- .algorithm_SE(B, delta)
-# temp %*% t(temp)
-#
-# A <- matrix(c(1, 0.9, 0.7, 0.9, 1, 0.4, 0.7, 0.4, 1), 3, 3)
-# delta <- c(3, 1, 2)
-# temp <- .algorithm_SE(A, delta)
-# temp %*% t(temp)
-
-.algorithm_SE_LDL <- function(A, delta) {
+.algorithm_modldl <- function(A, delta, pivot) {
 
   n <- nrow(A)
 
   L <- diag(n)
   D <- rep(NA, n)
 
-  A.k <- A
-  for(k in 1:(n-1)) {
-    D[k]            <- A.k[1, 1] + delta[k]
-    L[(k+1):n, k]   <- A.k[2:nrow(A.k), 1] / D[k]
-    A.k             <- A.k[2:nrow(A.k), 2:nrow(A.k)] - tcrossprod(A.k[2:nrow(A.k), 1]) / D[k]
+  if(pivot == FALSE) {
+
+    P     <- NULL
+    A.k   <- A
+    for(k in 1:(n-1)) {
+      D[k]            <- A.k[1, 1] + delta[k]
+      L[(k+1):n, k]   <- A.k[2:nrow(A.k), 1] / D[k]
+      A.k             <- A.k[2:nrow(A.k), 2:nrow(A.k)] - tcrossprod(A.k[2:nrow(A.k), 1]) / D[k]
+    }
+
+    D[n] <- A.k[nrow(A.k), nrow(A.k)] + delta[n]
+
+  } else {
+
+    P     <- seq(n)
+    A.k   <- A
+    for(k in 1:(n-1)) {
+      pvt             <- which.max(diag(A.k))
+      P[k:n]          <- c(P[k:n][pvt], P[k:n][-pvt])
+      A.k             <- A.k[c(pvt, (1:nrow(A.k))[-pvt]), c(pvt, (1:nrow(A.k))[-pvt])]
+      L               <- L[P, P]
+
+      D[k]            <- A.k[1, 1] + delta[k]
+      L[(k+1):n, k]   <- A.k[2:nrow(A.k), 1] / D[k]
+      A.k             <- A.k[2:nrow(A.k), 2:nrow(A.k)] - tcrossprod(A.k[2:nrow(A.k), 1]) / D[k]
+    }
+
+    D[n] <- A.k[nrow(A.k), nrow(A.k)] + delta[n]
+
   }
 
-  D[n] <- A.k[nrow(A.k), nrow(A.k)] + delta[n]
-  return(list(Lmat = L, Dvec = D))
+  return(list(Lmat = L, Dvec = D, Pvec = P))
 }
 
-# B <- matrix(c(2, -1, 0, -1, 2, -1, 0, -1, 2), 3, 3)
-# delta <- c(3, 1, 2)
-# temp <- .algorithm_SE_LDL(B, delta)
-# temp$Lmat %*% diag(temp$Dvec) %*% t(temp$Lmat)
-#
-# A <- matrix(c(1, 0.9, 0.7, 0.9, 1, 0.4, 0.7, 0.4, 1), 3, 3)
-# delta <- c(3, 1, 2)
-# temp <- .algorithm_SE_LDL(A, delta)
-# temp$Lmat %*% diag(temp$Dvec) %*% t(temp$Lmat)
-
-.algorithm_GMW81 <- function(A, beta = NULL, tol = .Machine$double.eps) {
+.algorithm_GMW81 <- function(A, beta = NULL, pivot, tol = .Machine$double.eps) {
 
   n <- nrow(A)
 
@@ -165,49 +229,46 @@
     beta <- sqrt(max( eta, xi / sqrt(n^2 - 1), .Machine$double.eps))
   }
 
-  L <- diag(n)
-  D <- rep(NA, n)
+  L   <- diag(n)
+  D   <- rep(NA, n)
+  P   <- seq(n)
 
-  A.k <- A
-  for(k in 1:(n-1)) {
-    D[k]            <- max(tol, abs(A.k[1, 1]), max(A.k[2:nrow(A.k), 1]^2 / beta^2))
-    L[(k+1):n, k]   <- A.k[2:nrow(A.k), 1] / D[k]
-    A.k             <- A.k[2:nrow(A.k), 2:nrow(A.k)] - tcrossprod(A.k[2:nrow(A.k), 1]) / D[k]
+  if(pivot == FALSE) {
+
+    P     <- NULL
+    A.k   <- A
+    for(k in 1:(n-1)) {
+      D[k]            <- max(tol, abs(A.k[1, 1]), max(A.k[2:nrow(A.k), 1]^2 / beta^2))
+      L[(k+1):n, k]   <- A.k[2:nrow(A.k), 1] / D[k]
+      A.k             <- A.k[2:nrow(A.k), 2:nrow(A.k)] - tcrossprod(A.k[2:nrow(A.k), 1]) / D[k]
+    }
+
+    D[n]  <- max(tol, abs(A.k[nrow(A.k), nrow(A.k)]))
+
+  } else {
+
+    P     <- seq(n)
+    A.k   <- A
+    for(k in 1:(n-1)) {
+      pvt             <- which.max(diag(A.k))
+      P[k:n]          <- c(P[k:n][pvt], P[k:n][-pvt])
+      A.k             <- A.k[c(pvt, (1:nrow(A.k))[-pvt]), c(pvt, (1:nrow(A.k))[-pvt])]
+      L               <- L[P, P]
+
+      D[k]            <- max(tol, abs(A.k[1, 1]), max(A.k[2:nrow(A.k), 1]^2 / beta^2))
+      L[(k+1):n, k]   <- A.k[2:nrow(A.k), 1] / D[k]
+      A.k             <- A.k[2:nrow(A.k), 2:nrow(A.k)] - tcrossprod(A.k[2:nrow(A.k), 1]) / D[k]
+
+    }
+
+    D[n]  <- max(tol, abs(A.k[nrow(A.k), nrow(A.k)]))
+
   }
 
-  D[n] <- max(tol, abs(A.k[nrow(A.k), nrow(A.k)]))
-  return(list(beta = beta, Lmat = L, Dvec = D))
+  return(list(beta = beta, Lmat = L, Dvec = D, Pvec = P))
 }
 
-# B <- matrix(c(2, -1, 0, -1, 2, -1, 0, -1, 2), 3, 3)
-# beta <- 10000
-# tol <- 0.1
-# temp <- .algorithm_GMW81(B, beta, tol)
-# temp$Lmat %*% diag(temp$Dvec) %*% t(temp$Lmat)
-# diag(sqrt(temp$Dvec)) %*% t(temp$Lmat)
-#
-# A <- matrix(c(1, 0.9, 0.7, 0.9, 1, 0.4, 0.7, 0.4, 1), 3, 3)
-# beta <- 10000
-# tol <- 0.1
-# temp <- .algorithm_GMW81(A, beta, tol)
-# temp$Lmat %*% diag(temp$Dvec) %*% t(temp$Lmat)
-# diag(sqrt(temp$Dvec)) %*% t(temp$Lmat)
-#
-# A <- matrix(c(1, 0.9, 0.7, 0.9, 1, 0.4, 0.7, 0.4, 1), 3, 3)
-# beta <- 10000
-# tol <- 0.5
-# temp <- .algorithm_GMW81(A, beta, tol)
-# temp$Lmat %*% diag(temp$Dvec) %*% t(temp$Lmat)
-# diag(sqrt(temp$Dvec)) %*% t(temp$Lmat)
-#
-# A <- matrix(c(1, 0.9, 0.7, 0.9, 1, 0.4, 0.7, 0.4, 1), 3, 3)
-# beta <- NULL
-# tol <- 0.5
-# temp <- .algorithm_GMW81(A, beta, tol)
-# temp$Lmat %*% diag(temp$Dvec) %*% t(temp$Lmat)
-# diag(sqrt(temp$Dvec)) %*% t(temp$Lmat)
-
-.algorithm_SE90 <- function(A) {
+.algorithm_SE90 <- function(A, pivot) {
 
   n <- nrow(A)
   r <- rowSums(abs(A)) - diag(abs(A))
@@ -215,23 +276,37 @@
   L <- diag(n)
   D <- rep(NA, n)
 
-  A.k <- A
-  for(k in 1:(n-1)) {
-    D[k]            <- A.k[1, 1] + max(0, r[k] - A.k[1, 1])
-    L[(k+1):n, k]   <- A.k[2:nrow(A.k), 1] / D[k]
-    A.k             <- A.k[2:nrow(A.k), 2:nrow(A.k)] - tcrossprod(A.k[2:nrow(A.k), 1]) / D[k]
+  if(pivot == FALSE) {
+
+    P <- NULL
+    A.k <- A
+    for(k in 1:(n-1)) {
+      D[k]            <- A.k[1, 1] + max(0, r[k] - A.k[1, 1])
+      L[(k+1):n, k]   <- A.k[2:nrow(A.k), 1] / D[k]
+      A.k             <- A.k[2:nrow(A.k), 2:nrow(A.k)] - tcrossprod(A.k[2:nrow(A.k), 1]) / D[k]
+    }
+
+    D[n] <- A.k[nrow(A.k), nrow(A.k)] + max(0, r[n] - A.k[nrow(A.k), nrow(A.k)])
+
+  } else {
+
+    P     <- seq(n)
+    A.k   <- A
+    for(k in 1:(n-1)) {
+      pvt             <- which.max(diag(A.k))
+      P[k:n]          <- c(P[k:n][pvt], P[k:n][-pvt])
+      A.k             <- A.k[c(pvt, (1:nrow(A.k))[-pvt]), c(pvt, (1:nrow(A.k))[-pvt])]
+      L               <- L[P, P]
+
+      D[k]            <- A.k[1, 1] + max(0, r[k] - A.k[1, 1])
+      L[(k+1):n, k]   <- A.k[2:nrow(A.k), 1] / D[k]
+      A.k             <- A.k[2:nrow(A.k), 2:nrow(A.k)] - tcrossprod(A.k[2:nrow(A.k), 1]) / D[k]
+
+    }
+
+    D[n]  <- A.k[nrow(A.k), nrow(A.k)] + max(0, r[n] - A.k[nrow(A.k), nrow(A.k)])
+
   }
 
-  D[n] <- A.k[nrow(A.k), nrow(A.k)] + max(0, r[n] - A.k[nrow(A.k), nrow(A.k)])
-  return(list(Lmat = L, Dvec = D))
+  return(list(Lmat = L, Dvec = D, Pvec = P))
 }
-
-# B <- matrix(c(2, -1, 0, -1, 2, -1, 0, -1, 2), 3, 3)
-# temp <- .algorithm_SE90(B)
-# temp$Lmat %*% diag(temp$Dvec) %*% t(temp$Lmat)
-# diag(sqrt(temp$Dvec)) %*% t(temp$Lmat)
-#
-# A <- matrix(c(1, 0.9, 0.7, 0.9, 1, 0.4, 0.7, 0.4, 1), 3, 3)
-# temp <- .algorithm_SE90(A)
-# temp$Lmat %*% diag(temp$Dvec) %*% t(temp$Lmat)
-# diag(sqrt(temp$Dvec)) %*% t(temp$Lmat)
