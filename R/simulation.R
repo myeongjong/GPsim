@@ -9,7 +9,7 @@
 ####################################################################################
 
 
-simulate_gp_brute <- function(locs = NULL, n = NULL, p = NULL, meanmodel = function(loc, meanparms) 0, meanparms = NULL, covmodel = function(loc1, loc2, covparms) ifelse(identical(loc1, loc2), 1, 0), covparms = NULL, seed = NULL, correction = NULL, tol = 1e8 * .Machine$double.eps) {
+simulate_gp_brute <- function(locs = NULL, n = NULL, p = NULL, meanmodel = function(loc, meanparms) 0, meanparms = NULL, covmodel = function(loc1, loc2, covparms) ifelse(identical(loc1, loc2), 1, 0), covparms = NULL, pivot = FALSE, correction = NULL, tol = .Machine$double.eps, seed = NULL) {
 
   if(!is.null(seed)) {
     seed.old <- .Random.seed
@@ -23,7 +23,7 @@ simulate_gp_brute <- function(locs = NULL, n = NULL, p = NULL, meanmodel = funct
 
   sigma     <- .checkargs_covmodel(covmodel = covmodel, covparms = covparms, locs = locsnp$locs, n = locsnp$n, p = locsnp$p)
 
-  gp        <- .process_gp(meanlocs = meanlocs, covlocs = sigma, n = locsnp$n, correction = correction, tol = tol)
+  gp        <- .process_gp(meanlocs = meanlocs, covlocs = sigma, n = locsnp$n, pivot = pivot, correction = correction, tol = tol)
 
   return(list(seed = seed, n = locsnp$n, p = locsnp$p, locs = locsnp$locs, meanvec = meanlocs, covmat = sigma, y = gp$y))
 }
