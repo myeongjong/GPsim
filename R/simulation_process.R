@@ -11,30 +11,34 @@
 
 .process_gp <- function(meanlocs, covlocs, n, pivot = FALSE, correction = NULL, tol = .Machine$double.eps) {
 
-  pivotvec <- NULL
-
   if(is.null(correction)) {
 
     covfactor             <- tryCatch(chol(x = covlocs, pivot = pivot, tol = tol), error = function(e) "Oops")
     if(identical(covfactor, "Oops")) stop("Cholesky decomposition cannnot be applied to the covariance matrix. Please specify the correction method (correction).")
 
-    pivotvec              <- attr(covfactor, "pivot")
+    if(pivot == TRUE) {
+      pivotvec            <- attr(covfactor, "pivot")
+      covfactor           <- covfactor[, pivotvec]
+    }
 
   } else if(correction == "qr") {
+
+    if(pivot == TRUE) warning("This correction does not use pivoting method.")
 
     eigendecomp           <- eigen(covlocs)
     covfactor             <- tryCatch(qr.R(qr( diag(sqrt(eigendecomp$values)) %*% t(eigendecomp$vectors), tol = tol )), error = function(e) "Oops")
 
     if(identical(covfactor, "Oops")) stop("QR decomposition cannnot be applied. Please use another correction method (correction).")
 
-    pivotvec <- NULL
-
   } else if(correction == "diag") {
 
     covfactor             <- tryCatch(chol(covlocs + diag(tol, n), pivot = pivot, tol = tol), error = function(e) "Oops")
     if(identical(covfactor, "Oops")) stop("Cholesky decomposition cannnot be applied to the modified covariance matrix. Please use larger tolerance value (tol).")
 
-    if(pivot == TRUE) pivotvec    <- attr(covfactor, "pivot")
+    if(pivot == TRUE) {
+      pivotvec            <- attr(covfactor, "pivot")
+      covfactor           <- covfactor[, pivotvec]
+    }
 
   } else if(correction == "type-I") {
 
@@ -42,7 +46,10 @@
     covfactor             <- tryCatch(chol(covlocs, pivot = pivot, tol = tol), error = function(e) "Oops")
     if(identical(covfactor, "Oops")) stop("Cholesky decomposition cannnot be applied to the modified covariance matrix. Please use larger tolerance value (tol).")
 
-    if(pivot == TRUE) pivotvec    <- attr(covfactor, "pivot")
+    if(pivot == TRUE) {
+      pivotvec            <- attr(covfactor, "pivot")
+      covfactor           <- covfactor[, pivotvec]
+    }
 
   } else if(correction == "type-II") {
 
@@ -50,9 +57,14 @@
     covfactor             <- tryCatch(chol(covlocs, pivot = pivot, tol = tol), error = function(e) "Oops")
     if(identical(covfactor, "Oops")) stop("Cholesky decomposition cannnot be applied to the modified covariance matrix. Please use larger tolerance value (tol).")
 
-    if(pivot == TRUE) pivotvec    <- attr(covfactor, "pivot")
+    if(pivot == TRUE) {
+      pivotvec            <- attr(covfactor, "pivot")
+      covfactor           <- covfactor[, pivotvec]
+    }
 
   } else if(correction == "eigen-I") {
+
+    if(pivot == TRUE) warning("This correction does not use pivoting method.")
 
     eigendecomp           <- eigen(covlocs)
     eigendecomp$values    <- pmax(abs(eigendecomp$values), tol) # ifelse(abs(eigendecomp$values) > tol, abs(eigendecomp$values), tol)
@@ -61,6 +73,8 @@
     if(identical(covfactor, "Oops")) stop("QR decomposition cannnot be applied. Please use larger tolerance value (tol).")
 
   } else if(correction == "eigen-II") {
+
+    if(pivot == TRUE) warning("This correction does not use pivoting method.")
 
     eigendecomp           <- eigen(covlocs)
     eigendecomp$values    <- pmax(eigendecomp$values, tol) # ifelse(eigendecomp$values > tol, eigendecomp$values, tol)
@@ -75,56 +89,24 @@
     if(identical(out, "Oops")) stop("GMW81 algorithm cannnot be applied. Please use larger tolerance value (tol).")
 
     if(pivot == FALSE) {
-
       covfactor <- sqrt(out$Dvec) * t(out$Lmat) # U = t(out$Lmat %*% diag(sqrt(out$Dvec)))
-
     } else if(pivot == TRUE) {
-
       covfactor <- sqrt(out$Dvec) * t(out$Lmat)
       covfactor <- covfactor[, out$Pvec]
-
     } else {
-
       stop("The argument pivot must be logical: TRUE or FALSE.")
-
-    }
-
-  } else if(correction == "SE90") {
-
-    out <- tryCatch(.algorithm_SE90(A = covlocs, pivot = pivot), error = function(e) "Oops")
-
-    if(identical(out, "Oops")) stop("SE90 algorithm cannnot be applied.")
-
-    if(pivot == FALSE) {
-
-      covfactor <- sqrt(out$Dvec) * t(out$Lmat) # U = t(out$Lmat %*% diag(sqrt(out$Dvec)))
-
-    } else if(pivot == TRUE) {
-
-      covfactor <- sqrt(out$Dvec) * t(out$Lmat)
-      covfactor <- covfactor[, out$Pvec]
-
-    } else {
-
-      stop("The argument pivot must be logical: TRUE or FALSE.")
-
     }
 
   } else if(correction == "SE99") {
 
-    stop("Not yet.")
+    if(pivot == FALSE) warning("SE99 algorithm need to use pivoting method.")
 
-  } else if(correction == "GMW-I") {
+    out <- tryCatch(.algorithm_SE99(A = covlocs, tol = tol), error = function(e) "Oops")
 
-    stop("Not yet.")
+    if(identical(out, "Oops")) stop("SE99 algorithm cannnot be applied.")
 
-  } else if(correction == "GMW-II") {
-
-    stop("Not yet.")
-
-  } else if(correction == "SE-I") {
-
-    stop("Not yet.")
+    covfactor <- t(out$Lmat)
+    covfactor <- covfactor[, out$Pvec]
 
   } else {
 
@@ -135,11 +117,11 @@
   covlocs.modified <- t(covfactor) %*% covfactor
 
   err.decomp <- sqrt(sum( (covlocs - covlocs.modified)^2 ))
-  message("The decomposition error of the covariance matrix is ", err.decomp, " with respect to the Frobenius norm.")
+  message("The decomposition error of the covariance matrix is ", err.decomp, " in the Frobenius norm.")
 
   y <- meanlocs + as.numeric(t(covfactor) %*% rnorm(n))
 
-  return(list(y = y, meanlocs = meanlocs, covlocs = covlocs, covlocs.modified = covlocs.modified, correction = correction, tol = tol))
+  return(list(y = y, meanlocs = meanlocs, covlocs = covlocs, covlocs.modified = covlocs.modified, err.decomp = err.decomp, correction = correction, tol = tol))
 }
 
 .algorithm_modchol <- function(A, delta, pivot) {
@@ -268,10 +250,45 @@
   return(list(beta = beta, Lmat = L, Dvec = D, Pvec = P))
 }
 
-.algorithm_SE90 <- function(A, pivot) {
+.algorithm_bruteforceSE90 <- function(A, pivot) {
 
   n <- nrow(A)
-  r <- rowSums(abs(A)) - diag(abs(A))
+
+  L <- diag(n)
+  D <- pmax(diag(A), rowSums(abs(A)) - diag(abs(A)))
+
+  if(pivot == FALSE) {
+
+    P <- NULL
+    A.k <- A
+    for(k in 1:(n-1)) {
+      L[(k+1):n, k]   <- A.k[2:nrow(A.k), 1] / D[k]
+      A.k             <- A.k[2:nrow(A.k), 2:nrow(A.k)] - tcrossprod(A.k[2:nrow(A.k), 1]) / D[k]
+    }
+
+  } else {
+
+    P     <- seq(n)
+    A.k   <- A
+    for(k in 1:(n-1)) {
+      pvt             <- which.max(diag(A.k))
+      P[k:n]          <- c(P[k:n][pvt], P[k:n][-pvt])
+      A.k             <- A.k[c(pvt, (1:nrow(A.k))[-pvt]), c(pvt, (1:nrow(A.k))[-pvt])]
+      L               <- L[P, P]
+      D               <- D[P]
+
+      L[(k+1):n, k]   <- A.k[2:nrow(A.k), 1] / D[k]
+      A.k             <- A.k[2:nrow(A.k), 2:nrow(A.k)] - tcrossprod(A.k[2:nrow(A.k), 1]) / D[k]
+    }
+
+  }
+
+  return(list(Lmat = L, Dvec = D, Pvec = P))
+}
+
+.algorithm_naiveSE90 <- function(A, pivot) {
+
+  n <- nrow(A)
 
   L <- diag(n)
   D <- rep(NA, n)
@@ -281,12 +298,12 @@
     P <- NULL
     A.k <- A
     for(k in 1:(n-1)) {
-      D[k]            <- A.k[1, 1] + max(0, r[k] - A.k[1, 1])
+      D[k]            <- max( A.k[1, 1], sum(abs(A.k[2:nrow(A.k), 1])) )
       L[(k+1):n, k]   <- A.k[2:nrow(A.k), 1] / D[k]
       A.k             <- A.k[2:nrow(A.k), 2:nrow(A.k)] - tcrossprod(A.k[2:nrow(A.k), 1]) / D[k]
     }
 
-    D[n] <- A.k[nrow(A.k), nrow(A.k)] + max(0, r[n] - A.k[nrow(A.k), nrow(A.k)])
+    D[n] <- A.k[nrow(A.k), nrow(A.k)]
 
   } else {
 
@@ -298,15 +315,22 @@
       A.k             <- A.k[c(pvt, (1:nrow(A.k))[-pvt]), c(pvt, (1:nrow(A.k))[-pvt])]
       L               <- L[P, P]
 
-      D[k]            <- A.k[1, 1] + max(0, r[k] - A.k[1, 1])
+      D[k]            <- max( A.k[1, 1], sum(abs(A.k[2:nrow(A.k), 1])) )
       L[(k+1):n, k]   <- A.k[2:nrow(A.k), 1] / D[k]
       A.k             <- A.k[2:nrow(A.k), 2:nrow(A.k)] - tcrossprod(A.k[2:nrow(A.k), 1]) / D[k]
-
     }
 
-    D[n]  <- A.k[nrow(A.k), nrow(A.k)] + max(0, r[n] - A.k[nrow(A.k), nrow(A.k)])
+    D[n]  <- A.k[nrow(A.k), nrow(A.k)]
 
   }
 
   return(list(Lmat = L, Dvec = D, Pvec = P))
+}
+
+.algorithm_SE99 <- function(A, tol) { # always use pivoting strategy
+
+  outmodchol <- mvLSW:::modchol(A, tol = tol)
+
+  return(list(Lmat = outmodchol$L, Pvec = outmodchol$P))
+
 }
