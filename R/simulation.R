@@ -9,7 +9,7 @@
 ####################################################################################
 
 
-simulate_gp_brute <- function(locs = NULL, n = NULL, p = NULL, meanmodel = function(loc, meanparms) 0, meanparms = NULL, covmodel = function(loc1, loc2, covparms) ifelse(identical(loc1, loc2), 1, 0), covparms = NULL, pivot = FALSE, correction = NULL, tol = .Machine$double.eps, seed = NULL) {
+simulate_gp <- function(locs = NULL, n = NULL, p = NULL, meanmodel = function(loc, meanparms) 0, meanparms = NULL, covmodel = function(loc1, loc2, covparms) ifelse(identical(loc1, loc2), 1, 0), covparms = NULL, pivot = FALSE, correction = NULL, tol = .Machine$double.eps, seed = NULL) {
 
   if(!is.null(seed)) {
     seed.old <- .Random.seed
@@ -26,17 +26,4 @@ simulate_gp_brute <- function(locs = NULL, n = NULL, p = NULL, meanmodel = funct
   gp        <- .process_gp(meanlocs = meanlocs, covlocs = sigma, n = locsnp$n, pivot = pivot, correction = correction, tol = tol)
 
   return(list(seed = seed, n = locsnp$n, p = locsnp$p, locs = locsnp$locs, meanvec = meanlocs, covmat = sigma, y = gp$y))
-}
-
-simulate_gp <- function(temp1, temp2) {
-  return(temp1 + temp2)
-}
-
-
-.simulate_gp_stationary <- function() {
-  return(1)
-}
-
-.simulate_gp_nonstationary <- function() {
-  return(1)
 }
