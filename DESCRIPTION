@@ -20,6 +20,10 @@ Imports:
     parallel,
     Rfast,
     scanstatistics,
-    fields
+    fields,
+    Rcpp,
+    rlang,
+    backports,
+    digest
 Suggests: 
     testthat (>= 2.1.0)
