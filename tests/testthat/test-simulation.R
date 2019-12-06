@@ -59,19 +59,19 @@ test_that("covmodel", {
 })
 
 test_that("availability of arguments", {
-  expect_equal(simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = function(loc, meanparms) 0, meanparms = NULL, covmodel = function(loc1, loc2, covparms) ifelse(identical(loc1, loc2), 1, 0), covparms = NULL, seed = 1)$y,
-               simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = function(loc, meanparms) 0, meanparms = NULL, covmodel = function(loc1, loc2, covparms) ifelse(identical(loc1, loc2), 1, 0), covparms = NULL, seed = 1)$y)
-  expect_equal(simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = function(loc, meanparms) 0, meanparms = NULL, covmodel = function(loc1, loc2, covparms) ifelse(identical(loc1, loc2), 1, 0), covparms = NULL, seed = 1)$y,
-               simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = matrix(0, 3, 1), meanparms = NULL, covmodel = diag(3), covparms = NULL, seed = 1)$y)
-  expect_equal(simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = function(loc, meanparms) 0, meanparms = NULL, covmodel = function(loc1, loc2, covparms) ifelse(identical(loc1, loc2), 1, 0), covparms = NULL, seed = 1)$y,
-               simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = matrix(0, 1, 3), meanparms = NULL, covmodel = diag(3), covparms = NULL, seed = 1)$y)
-  expect_equal(simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = function(loc, meanparms) 0, meanparms = NULL, covmodel = function(loc1, loc2, covparms) ifelse(identical(loc1, loc2), 1, 0), covparms = NULL, seed = 1)$y,
-               simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = as.data.frame(matrix(0, 3, 1)), meanparms = NULL, covmodel = as.data.frame(diag(3)), covparms = NULL, seed = 1)$y)
-  expect_equal(simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = function(loc, meanparms) 0, meanparms = NULL, covmodel = function(loc1, loc2, covparms) ifelse(identical(loc1, loc2), 1, 0), covparms = NULL, seed = 1)$y,
-               simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = as.data.frame(matrix(0, 1, 3)), meanparms = NULL, covmodel = as.data.frame(diag(3)), covparms = NULL, seed = 1)$y)
-  expect_equal(simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = function(loc, meanparms) 0, meanparms = NULL, covmodel = function(loc1, loc2, covparms) ifelse(identical(loc1, loc2), 1, 0), covparms = NULL, seed = 1)$y,
-               simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = matrix(0, 3, 1), meanparms = NULL, covmodel = rep(1, 3), covparms = NULL, seed = 1)$y)
-  expect_equal(simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = function(loc, meanparms) 0, meanparms = NULL, covmodel = function(loc1, loc2, covparms) ifelse(identical(loc1, loc2), 1, 0), covparms = NULL, seed = 1)$y,
-               simulate_gp_brute(locs = 'random', n = 3, p = 2, meanmodel = matrix(0, 1, 3), meanparms = NULL, covmodel = 'identity', covparms = NULL, seed = 1)$y)
+  expect_equal(simulate_gp(locs = 'random', n = 3, p = 2, meanmodel = function(locs, meanparms) rep(0, nrow(locs)), meanparms = NULL, covmodel = function(locs, covparms) diag(1, nrow(locs)), covparms = NULL, seed = 1)$y,
+               simulate_gp(locs = 'random', n = 3, p = 2, meanmodel = function(locs, meanparms) rep(0, nrow(locs)), meanparms = NULL, covmodel = function(locs, covparms) diag(1, nrow(locs)), covparms = NULL, seed = 1)$y)
+  expect_equal(simulate_gp(locs = 'random', n = 3, p = 2, meanmodel = function(locs, meanparms) rep(0, nrow(locs)), meanparms = NULL, covmodel = function(locs, covparms) diag(1, nrow(locs)), covparms = NULL, seed = 1)$y,
+               simulate_gp(locs = 'random', n = 3, p = 2, meanmodel = matrix(0, 3, 1), meanparms = NULL, covmodel = diag(3), covparms = NULL, seed = 1)$y)
+  expect_equal(simulate_gp(locs = 'random', n = 3, p = 2, meanmodel = function(locs, meanparms) rep(0, nrow(locs)), meanparms = NULL, covmodel = function(locs, covparms) diag(1, nrow(locs)), covparms = NULL, seed = 1)$y,
+               simulate_gp(locs = 'random', n = 3, p = 2, meanmodel = matrix(0, 1, 3), meanparms = NULL, covmodel = diag(3), covparms = NULL, seed = 1)$y)
+  expect_equal(simulate_gp(locs = 'random', n = 3, p = 2, meanmodel = function(locs, meanparms) rep(0, nrow(locs)), meanparms = NULL, covmodel = function(locs, covparms) diag(1, nrow(locs)), covparms = NULL, seed = 1)$y,
+               simulate_gp(locs = 'random', n = 3, p = 2, meanmodel = as.data.frame(matrix(0, 3, 1)), meanparms = NULL, covmodel = as.data.frame(diag(3)), covparms = NULL, seed = 1)$y)
+  expect_equal(simulate_gp(locs = 'random', n = 3, p = 2, meanmodel = function(locs, meanparms) rep(0, nrow(locs)), meanparms = NULL, covmodel = function(locs, covparms) diag(1, nrow(locs)), covparms = NULL, seed = 1)$y,
+               simulate_gp(locs = 'random', n = 3, p = 2, meanmodel = as.data.frame(matrix(0, 1, 3)), meanparms = NULL, covmodel = as.data.frame(diag(3)), covparms = NULL, seed = 1)$y)
+  expect_equal(simulate_gp(locs = 'random', n = 3, p = 2, meanmodel = function(locs, meanparms) rep(0, nrow(locs)), meanparms = NULL, covmodel = function(locs, covparms) diag(1, nrow(locs)), covparms = NULL, seed = 1)$y,
+               simulate_gp(locs = 'random', n = 3, p = 2, meanmodel = matrix(0, 3, 1), meanparms = NULL, covmodel = rep(1, 3), covparms = NULL, seed = 1)$y)
+  expect_equal(simulate_gp(locs = 'random', n = 3, p = 2, meanmodel = function(locs, meanparms) rep(0, nrow(locs)), meanparms = NULL, covmodel = function(locs, covparms) diag(1, nrow(locs)), covparms = NULL, seed = 1)$y,
+               simulate_gp(locs = 'random', n = 3, p = 2, meanmodel = matrix(0, 1, 3), meanparms = NULL, covmodel = 'identity', covparms = NULL, seed = 1)$y)
 })
 
