@@ -15,6 +15,11 @@ LazyData: true
 RoxygenNote: 6.1.1
 Imports: 
     RandomFields,
-    mvLSW
+    mvLSW,
+    GpGp,
+    parallel,
+    Rfast,
+    scanstatistics,
+    fields
 Suggests: 
     testthat (>= 2.1.0)
