@@ -9,7 +9,7 @@
 ####################################################################################
 
 
-simulate_gp <- function(locs = NULL, n = NULL, p = NULL, meanmodel = function(loc, meanparms) 0, meanparms = NULL, covmodel = function(loc1, loc2, covparms) ifelse(identical(loc1, loc2), 1, 0), covparms = NULL, pivot = FALSE, correction = NULL, tol = .Machine$double.eps, seed = NULL) {
+simulate_gp <- function(locs = NULL, n = NULL, p = NULL, meanmodel = function(locs, meanparms) rep(0, nrow(locs)), meanparms = NULL, covmodel = function(locs, covparms) diag(1, nrow(locs)), covparms = NULL, pivot = FALSE, correction = NULL, tol = .Machine$double.eps, seed = NULL) {
 
   if(!is.null(seed)) {
     seed.old <- .Random.seed

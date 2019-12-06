@@ -24,15 +24,15 @@ test_that("locs, n, and p", {
 })
 
 test_that("meanmodel", {
-  expect_equal(.checkargs_meanmodel(meanmodel = function(loc, meanparms) 0, meanparms = 0, locs = matrix(0, 3, 2), n = 3, p = 2),
+  expect_equal(.checkargs_meanmodel(meanmodel = function(locs, meanparms) rep(0, nrow(locs)), meanparms = 0, locs = matrix(0, 3, 2), n = 3, p = 2),
                .checkargs_meanmodel(meanmodel = matrix(0, 3, 1), meanparms = 0, locs = matrix(0, 3, 2), n = 3, p = 2))
-  expect_equal(.checkargs_meanmodel(meanmodel = function(loc, meanparms) 0, meanparms = 0, locs = matrix(0, 3, 2), n = 3, p = 2),
+  expect_equal(.checkargs_meanmodel(meanmodel = function(locs, meanparms) rep(0, nrow(locs)), meanparms = 0, locs = matrix(0, 3, 2), n = 3, p = 2),
                .checkargs_meanmodel(meanmodel = as.data.frame(matrix(0, 3, 1)), meanparms = 0, locs = matrix(0, 3, 2), n = 3, p = 2))
-  expect_equal(.checkargs_meanmodel(meanmodel = function(loc, meanparms) 0, meanparms = 0, locs = matrix(0, 3, 2), n = 3, p = 2),
+  expect_equal(.checkargs_meanmodel(meanmodel = function(locs, meanparms) rep(0, nrow(locs)), meanparms = 0, locs = matrix(0, 3, 2), n = 3, p = 2),
                .checkargs_meanmodel(meanmodel = matrix(0, 1, 3), meanparms = 0, locs = matrix(0, 3, 2), n = 3, p = 2))
-  expect_equal(.checkargs_meanmodel(meanmodel = function(loc, meanparms) 0, meanparms = 0, locs = matrix(0, 3, 2), n = 3, p = 2),
+  expect_equal(.checkargs_meanmodel(meanmodel = function(locs, meanparms) rep(0, nrow(locs)), meanparms = 0, locs = matrix(0, 3, 2), n = 3, p = 2),
                .checkargs_meanmodel(meanmodel = as.data.frame(matrix(0, 1, 3)), meanparms = 0, locs = matrix(0, 3, 2), n = 3, p = 2))
-  expect_equal(.checkargs_meanmodel(meanmodel = function(loc, meanparms) 0, meanparms = 0, locs = matrix(0, 3, 2), n = 3, p = 2),
+  expect_equal(.checkargs_meanmodel(meanmodel = function(locs, meanparms) rep(0, nrow(locs)), meanparms = 0, locs = matrix(0, 3, 2), n = 3, p = 2),
                .checkargs_meanmodel(meanmodel = 0, meanparms = 0, locs = matrix(0, 3, 2), n = 3, p = 2))
   expect_identical(tryCatch(.checkargs_meanmodel(meanmodel = matrix(0, 2, 1), meanparms = 0, locs = matrix(0, 3, 2), n = 3, p = 2), error = function(e) TRUE), TRUE)
   expect_identical(tryCatch(.checkargs_meanmodel(meanmodel = matrix(0, 1, 2), meanparms = 0, locs = matrix(0, 3, 2), n = 3, p = 2), error = function(e) TRUE), TRUE)
@@ -41,17 +41,17 @@ test_that("meanmodel", {
 })
 
 test_that("covmodel", {
-  expect_equal(.checkargs_covmodel(covmodel = function(loc1, loc2, covparms) ifelse(identical(loc1, loc2), 1, 0), covparms = 1, locs = matrix(runif(6), 3, 2), n = 3, p = 2),
+  expect_equal(.checkargs_covmodel(covmodel = function(locs, covparms) diag(1, nrow(locs)), covparms = 1, locs = matrix(runif(6), 3, 2), n = 3, p = 2),
                .checkargs_covmodel(covmodel = diag(1, 3), covparms = 1, locs = matrix(runif(6), 3, 2), n = 3, p = 2))
-  expect_equal(.checkargs_covmodel(covmodel = function(loc1, loc2, covparms) ifelse(identical(loc1, loc2), 1, 0), covparms = 1, locs = matrix(runif(6), 3, 2), n = 3, p = 2),
+  expect_equal(.checkargs_covmodel(covmodel = function(locs, covparms) diag(1, nrow(locs)), covparms = 1, locs = matrix(runif(6), 3, 2), n = 3, p = 2),
                .checkargs_covmodel(covmodel = as.data.frame(diag(1, 3)), covparms = 1, locs = matrix(runif(6), 3, 2), n = 3, p = 2))
-  expect_equal(.checkargs_covmodel(covmodel = function(loc1, loc2, covparms) ifelse(identical(loc1, loc2), 1, 0), covparms = 1, locs = matrix(runif(6), 3, 2), n = 3, p = 2),
+  expect_equal(.checkargs_covmodel(covmodel = function(locs, covparms) diag(1, nrow(locs)), covparms = 1, locs = matrix(runif(6), 3, 2), n = 3, p = 2),
                .checkargs_covmodel(covmodel = as.data.frame(diag(1, 3)), covparms = 1, locs = matrix(runif(6), 3, 2), n = 3, p = 2))
-  expect_equal(.checkargs_covmodel(covmodel = function(loc1, loc2, covparms) ifelse(identical(loc1, loc2), 1, 0), covparms = 1, locs = matrix(runif(6), 3, 2), n = 3, p = 2),
+  expect_equal(.checkargs_covmodel(covmodel = function(locs, covparms) diag(1, nrow(locs)), covparms = 1, locs = matrix(runif(6), 3, 2), n = 3, p = 2),
                .checkargs_covmodel(covmodel = c(1, 1, 1), covparms = 1, locs = matrix(runif(6), 3, 2), n = 3, p = 2))
-  expect_equal(.checkargs_covmodel(covmodel = function(loc1, loc2, covparms) ifelse(identical(loc1, loc2), 1, 0), covparms = 1, locs = matrix(runif(6), 3, 2), n = 3, p = 2),
+  expect_equal(.checkargs_covmodel(covmodel = function(locs, covparms) diag(1, nrow(locs)), covparms = 1, locs = matrix(runif(6), 3, 2), n = 3, p = 2),
                .checkargs_covmodel(covmodel = 1, covparms = 1, locs = matrix(runif(6), 3, 2), n = 3, p = 2))
-  expect_equal(.checkargs_covmodel(covmodel = function(loc1, loc2, covparms) ifelse(identical(loc1, loc2), 1, 0), covparms = 1, locs = matrix(runif(6), 3, 2), n = 3, p = 2),
+  expect_equal(.checkargs_covmodel(covmodel = function(locs, covparms) diag(1, nrow(locs)), covparms = 1, locs = matrix(runif(6), 3, 2), n = 3, p = 2),
                .checkargs_covmodel(covmodel = "identity", covparms = 1, locs = matrix(runif(6), 3, 2), n = 3, p = 2))
   expect_identical(tryCatch(.checkargs_covmodel(covmodel = matrix(0, 3, 2), covparms = 1, locs = matrix(runif(6), 3, 2), n = 3, p = 2), error = function(e) TRUE), TRUE)
   expect_identical(tryCatch(.checkargs_covmodel(covmodel = matrix(0, 2, 3), covparms = 1, locs = matrix(runif(6), 3, 2), n = 3, p = 2), error = function(e) TRUE), TRUE)

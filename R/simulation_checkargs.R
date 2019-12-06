@@ -126,7 +126,7 @@
 
   if(is.function(meanmodel)) {
 
-    meanlocs <- tryCatch(apply(X = locs, MARGIN = 1, FUN = function(x) meanmodel(loc = x, meanparms = meanparms)), error = function(e) "Oops")
+    meanlocs <- tryCatch(meanmodel(locs, meanparms), error = function(e) "Oops")
 
     if(identical(meanlocs, "Oops")) stop("Either the mean function (meanmodel) or its parameters (meanparms) do not work properly.")
 
@@ -164,7 +164,7 @@
   if(is.function(covmodel)) {
 
     ind <- expand.grid(seq(n), seq(n))
-    covlocs <- tryCatch(apply(X = ind, MARGIN = 1, FUN = function(x) covmodel(loc1 = as.numeric(locs[x[1], ]), loc2 = as.numeric(locs[x[2], ]), covparms = covparms)), error = function(e) "Oops")
+    covlocs <- tryCatch(covmodel(locs, covparms), error = function(e) "Oops")
 
     if(identical(covlocs, "Oops")) stop("Either the covariance function (covmodel) or its parameters (covparms) do not work properly.")
 
