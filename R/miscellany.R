@@ -9,6 +9,23 @@
 ####################################################################################
 
 
+#' @title Kullback Leiber (KL) divergence between two multivariate normal distributions
+#'
+#' @description From two mean vectors (\code{mu0}, \code{mu1}) and two covariance matrices (\code{covmat0}, \code{covmat1}), this function returns KL divergence between \code{N(mu0,covmat0)} and \code{N(mu1,covmat1)}.
+#'
+#' @param covmat0 A covariance matrix of the first multivariate normal distribution
+#' @param covmat1 A covariance matrix of the second multivariate normal distribution
+#' @param mu0 A mean vector of the first multivariate normal distribution
+#' @param mu1 A mean vector of the second multivariate normal distribution
+#'
+#' @return KL divergence between \code{N(mu0,covmat0)} and \code{N(mu1,covmat1)}
+#' @export
+#'
+#' @examples
+#' covmat0 <- diag(3)
+#' covmat1 <- matrix(c(1, 0.9, 0.7, 0.9, 1, 0.4, 0.7, 0.4, 1), 3, 3)
+#'
+#' kldiv(covmat0 = covmat0, covmat1 = covmat1)
 kldiv <- function(covmat0, covmat1, mu0 = rep(0, nrow(covmat0)), mu1 = rep(0, nrow(covmat0))) {
 
   # function to compute KL divergence
