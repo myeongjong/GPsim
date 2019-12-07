@@ -1,5 +1,5 @@
 ---
-title: "GPsim-basicuse"
+title: "Basic use of GPsim"
 output: rmarkdown::pdf_document
 vignette: >
   %\VignetteIndexEntry{GPsim-basicuse}
@@ -14,6 +14,59 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup}
+This vignette is aimed at breifly introducing how to use functions in GPsim. This package has five main functions: simulate_gp, corrvecchia_knownCovparms, cov_expo_iso, cov_expo_aniso, and kldiv.
+
+## generating a realization of a Gaussian Process (GP)
+
+In this section, we generate a realization of a gaussian process. Its mean function is a zero function and its covariance function is an anisotropic exponential covariance function with variance of 1, range of 0.1, and degree of anisotropy of 10. This output can be visualized using the quilt.plot function in the package fields.
+
+```{r generation, warning = F, message = T, tidy = T, fig.height = 4, fig.width = 4.5, fig.align = "center"}
 library(GPsim)
+
+set.seed(2019)
+
+covparms <- c(1, 0.1, 10) # (variance, range, degree of anisotropy)
+
+realization <- simulate_gp(locs = "random", n = 15^2, p = 2, meanmodel = function(locs, meanparms) rep(0, nrow(locs)), meanparms = NULL, covmodel = cov_expo_aniso, covparms = covparms, pivot = FALSE, correction = NULL, tol = .Machine$double.eps, seed = 2020)
+
+fields::quilt.plot(realization$locs[, 1], realization$locs[, 2], realization$y, main = "A realization of the standard GP", xlab = "loc1", ylab = "loc2")
 ```
+
+## Applying the Vecchia approximation
+
+In this section, we apply two differnt vecchia approaches: one is the Vecchia approach with Euclidean distance (standard Vecchia apporximation) and the other is the Vecchia approximation with correlation-based distance $1-\rho$ (correlation-based Vecchia approximation).
+
+```{r fitting, warning = F, message = F, tidy = T}
+vecchia.fit.euclidean <- corrvecchia_knownCovparms(locs = realization$locs, m = 10, ordering = "maxmin", coordinate = NULL, dist.ordering = "euclidean", dist.conditioning = "euclidean", covmodel = realization$covmat.correted, covparms = NULL)
+
+vecchia.fit.correlation <- corrvecchia_knownCovparms(locs = realization$locs, m = 10, ordering = "maxmin", coordinate = NULL, dist.ordering = "correlation", dist.conditioning = "correlation", covmodel = realization$covmat.correted, covparms = NULL)
+```
+
+## Comparing performance of euclidean and correlation-based Vecchia approaches
+
+In this section, we compare the above two Vecchia approaches. To evaluate them, the GPvecchia package must be used. But unfortunately, this package is unavailable online now because of several technical issues. I will update this vignette after the issues are fixed.
+
+As you can see below, we can estimate the covariance matrix of the GP using each Vecchia approach. For the standard Vecchia approximation, Kullback Leiber (KL) divergence between true GP and approximate GP is 0.404. On the other hand, for the correlation-based Vecchia approximation, that is only 0.000556. In sum, it is clear that the correlation-based Vecchia approximation performs better than the stadard one in cases of anisotropic covariance functions.
+
+```{r comparison, warning = F, message = F, tidy = T}
+library(GPvecchia)
+
+sigma.ord       <- cov_expo_aniso(locs = vecchia.fit.euclidean$locsord, covparms = covparms)
+U               <- createU(vecchia.fit.euclidean, covparms = covparms, nugget = 0, covmodel = sigma.ord)
+revord          <- order(vecchia.fit.euclidean$ord)
+sigma.hat       <- as.matrix(solve(Matrix::tcrossprod(U$U)))[revord,revord]
+kls.euclidean   <- kldiv(realization$covmat.correted, sigma.hat)
+
+sigma.ord       <- cov_expo_aniso(locs = vecchia.fit.correlation$locsord, covparms = covparms)
+U               <- createU(vecchia.fit.correlation, covparms = covparms, nugget = 0, covmodel = sigma.ord)
+revord          <- order(vecchia.fit.correlation$ord)
+sigma.hat       <- as.matrix(solve(Matrix::tcrossprod(U$U)))[revord,revord]
+kls.correlation <- kldiv(realization$covmat.correted, sigma.hat)
+
+c(kls.euclidean, kls.correlation)
+```
+
+
+
+
+
