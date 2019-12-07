@@ -17,6 +17,8 @@ corrvecchia_knownCovparms(locs, m, ordering = "maxmin",
 If \code{ordering} is "coord," then coordinate-based ordering method is used to order the locations.
 If \code{ordering} is "maxmin," then maxmin ordering method is used to order the locations.}
 
+\item{coordinate}{a numeric vector of coordinates}
+
 \item{dist.ordering}{"euclidean" or "correlation."
 If \code{dist.ordering} is "euclidean," then euclidean distance is used to order the locations.
 If \code{dist.ordering} is "correlation," then correlation based distance 1-rho is used to order the locations.}
