@@ -73,5 +73,5 @@ simulate_gp <- function(locs = NULL, n = NULL, p = NULL, meanmodel = function(lo
   gp        <- .process_gp(meanlocs = meanlocs, covlocs = sigma, n = locsnp$n, pivot = pivot, correction = correction, tol = tol)
 
   # return
-  return(list(seed = seed, n = locsnp$n, p = locsnp$p, locs = locsnp$locs, meanvec = meanlocs, covmat = sigma, y = gp$y))
+  return(list(seed = seed, n = locsnp$n, p = locsnp$p, locs = locsnp$locs, meanvec = meanlocs, covmat.input = sigma, covmat.correted = gp$covlocs.modified, err.decomp = gp$err.decomp, correction = gp$correction, tol = tol, y = gp$y))
 }
