@@ -54,7 +54,7 @@
         stop("The number of locations (n) is not compatible with the locations (locs).")
       }
     } else if(!( is.null(n) | is.null(p))){
-      if(identical(as.numeric(dim(locs)), c(n, p))) {
+      if( nrow(locs) == n & ncol(locs) == p ) {
         message("Note: Neither the number of locations (n) nor the dimension of domain (p) are necessary.")
       } else {
         stop("The locations (locs) are not compatible with either the number of locations (n) or the dimension of domain (p).")
@@ -84,7 +84,7 @@
         stop("The number of locations (n) is not compatible with the locations (locs).")
       }
     } else if(!( is.null(n) | is.null(p))){
-      if(identical(as.numeric(dim(locs)), c(n, p))) {
+      if( nrow(locs) == n & ncol(locs) == p ) {
         message("Note: Neither the number of locations (n) nor the dimension of domain (p) are necessary.")
       } else {
         stop("The locations (locs) are not compatible with either the number of locations (n) or the dimension of domain (p).")
@@ -132,7 +132,7 @@
 
   } else if(is.matrix(meanmodel) | is.data.frame(meanmodel)) {
 
-    if(identical(as.numeric(dim(meanmodel)), c(n, 1)) | identical(as.numeric(dim(meanmodel)), c(1, n))) {
+    if( (nrow(meanmodel) == n & ncol(meanmodel) == 1) | (nrow(meanmodel) == 1 & ncol(meanmodel) == n) ) {
       meanlocs <- as.numeric(as.matrix(meanmodel))
     } else {
       stop("The mean vector (meanmodel) is not compatible with the locations (locs).")
@@ -171,7 +171,7 @@
 
   } else if(is.matrix(covmodel) | is.data.frame(covmodel)) {
 
-    if(identical(as.numeric(dim(covmodel)), c(n, n))) {
+    if( nrow(covmodel) == n & ncol(covmodel) == n ) {
       covlocs <- as.matrix(covmodel)
     } else {
       stop("The covariance matrix (covmodel) is not compatible with the locations (locs).")

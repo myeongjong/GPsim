@@ -95,7 +95,7 @@
 
   } else if(is.matrix(covmodel) | is.data.frame(covmodel)) {
 
-    if(!identical(as.numeric(dim(covmodel)), c(n, n))) stop("The covariance matrix (covmodel) is not compatible with the locations (locs).")
+    if( !(nrow(covmodel == n) & ncol(covmodel) == n) ) stop("The covariance matrix (covmodel) is not compatible with the locations (locs).")
 
   } else {
 
