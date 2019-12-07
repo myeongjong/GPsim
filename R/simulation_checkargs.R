@@ -122,7 +122,7 @@
 }
 
 
-.checkargs_meanmodel <- function(meanmodel, meanparms, locs, n, p) {
+.checkargs_meanmodel <- function(meanmodel, meanparms, locs, n) {
 
   if(is.function(meanmodel)) {
 
@@ -159,11 +159,10 @@
 }
 
 
-.checkargs_covmodel <- function(covmodel, covparms, locs, n, p) {
+.checkargs_covmodel <- function(covmodel, covparms, locs, n) {
 
   if(is.function(covmodel)) {
 
-    ind <- expand.grid(seq(n), seq(n))
     covlocs <- tryCatch(covmodel(locs, covparms), error = function(e) "Oops")
 
     if(identical(covlocs, "Oops")) stop("Either the covariance function (covmodel) or its parameters (covparms) do not work properly.")

@@ -19,9 +19,9 @@ simulate_gp <- function(locs = NULL, n = NULL, p = NULL, meanmodel = function(lo
 
   locsnp    <- .checkargs_locsnp(locs = locs, n = n, p = p)
 
-  meanlocs  <- .checkargs_meanmodel(meanmodel = meanmodel, meanparms = meanparms, locs = locsnp$locs, n = locsnp$n, p = locsnp$p)
+  meanlocs  <- .checkargs_meanmodel(meanmodel = meanmodel, meanparms = meanparms, locs = locsnp$locs, n = locsnp$n)
 
-  sigma     <- .checkargs_covmodel(covmodel = covmodel, covparms = covparms, locs = locsnp$locs, n = locsnp$n, p = locsnp$p)
+  sigma     <- .checkargs_covmodel(covmodel = covmodel, covparms = covparms, locs = locsnp$locs, n = locsnp$n)
 
   gp        <- .process_gp(meanlocs = meanlocs, covlocs = sigma, n = locsnp$n, pivot = pivot, correction = correction, tol = tol)
 
