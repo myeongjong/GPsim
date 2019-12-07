@@ -32,7 +32,7 @@ devtools::install_github("myeongjong/GPsim")
 
 ## Example
 
-```{r example, message=FALSE}
+```{r example, message=FALSE, tidy=T, fig.align='center'}
 library(GPsim)
 
 set.seed(2019)

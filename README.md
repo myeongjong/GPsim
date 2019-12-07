@@ -27,14 +27,18 @@ library(GPsim)
 
 set.seed(2019)
 
-covparms <- c(1, 0.1, 10) # (variance, range, degree of anisotropy)
+covparms <- c(1, 0.1, 10)  # (variance, range, degree of anisotropy)
 
-realization <- simulate_gp(locs = "random", n = 15^2, p = 2, meanmodel = function(locs, meanparms) rep(0, nrow(locs)), meanparms = NULL, covmodel = cov_expo_aniso, covparms = covparms, pivot = FALSE, correction = NULL, tol = .Machine$double.eps, seed = 2020)
+realization <- simulate_gp(locs = "random", n = 15^2, p = 2, meanmodel = function(locs, 
+    meanparms) rep(0, nrow(locs)), meanparms = NULL, covmodel = cov_expo_aniso, 
+    covparms = covparms, pivot = FALSE, correction = NULL, tol = .Machine$double.eps, 
+    seed = 2020)
 
-fields::quilt.plot(realization$locs[, 1], realization$locs[, 2], realization$y, main = "A realization of the standard GP", xlab = "loc1", ylab = "loc2")
+fields::quilt.plot(realization$locs[, 1], realization$locs[, 2], realization$y, 
+    main = "A realization of the standard GP", xlab = "loc1", ylab = "loc2")
 ```
 
-![](README-example-1.png)
+<img src="README-example-1.png" style="display: block; margin: auto;" />
 
 License
 -------
