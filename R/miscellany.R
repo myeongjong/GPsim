@@ -1,10 +1,7 @@
 ####################################################################################
 ###   Author: Myeongjong Kang (kmj.stat@gmail.com)
 ###
-###   Overview: This script includes several R functions for
-###
-###   Description:
-###
+###   Overview: This script includes a R function for computing Kullback Leiber (KL) divergence between two multivariate normal distributions.
 ###
 ####################################################################################
 
