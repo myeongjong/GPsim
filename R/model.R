@@ -1,15 +1,53 @@
 ####################################################################################
 ###   Author: Myeongjong Kang (kmj.stat@gmail.com)
 ###
-###   Overview: This script includes several R functions for implementing baseline models.
-###
-###   Description:
-###
+###   Overview: This script includes several R functions for implementing baseline models such as the euclidean based and the correlation based Vecchia approximation.
 ###
 ####################################################################################
 
 
-corrvecchia_knownCovparms <- function(locs, m, ordering = "maxmin", coordinate = NULL, dist.ordering = "correlation", initial.pt = NULL, dist.conditioning = "correlation", covmodel, covparms) {
+#' @title Vecchia approximation with Euclidean and correlation-based distances
+#'
+#' @description The correlation-based Vecchia approximation is nothing but the Vecchia approximation with a correlation-based distance.
+#'              It is equivalent to the Vecchia approximation with Euclidean distance for isotropic covariance function cases which are popular in application.
+#'              If offers an automatic strategy even when Euclidean distance is not applicable (e.g. text data).
+#'
+#' @param locs A matrix with \code{n} rows and \code{p} columns. Each row of locs gives a point in \code{[0, 1]^p}
+#' @param m Number of nearby points to condition on (the size of conditioning sets)
+#' @param ordering "coord" or "maxmin."
+#'                 If \code{ordering} is "coord," then coordinate-based ordering method is used to order the locations.
+#'                 If \code{ordering} is "maxmin," then maxmin ordering method is used to order the locations.
+#' @param coordinate
+#' @param dist.ordering "euclidean" or "correlation."
+#'                      If \code{dist.ordering} is "euclidean," then euclidean distance is used to order the locations.
+#'                      If \code{dist.ordering} is "correlation," then correlation based distance 1-rho is used to order the locations.
+#' @param dist.conditioning "euclidean" or "correlation."
+#'                          If \code{dist.conditioning} is "euclidean," then euclidean distance is used to construct conditioning sets.
+#'                          If \code{dist.conditioning} is "correlation," then correlation based distance 1-rho is used to construct conditioning sets.
+#' @param covmodel If \code{covmodel} is a function, then \code{covmodel} is a covariance function.
+#'                 If \code{covmodel} is a matrix, then \code{covmodel} is a covariance matrix.
+#' @param covparms At \code{NULL} by default. If \code{covparms} is \code{NULL}, then \code{covmodel} is considered as a correlation matrix.
+#'
+#' @return An object that specifies the Vecchia approximation for later use in likelihood evaluation or prediction. We are doing research on this.
+#'
+#' @references Katzfuss, Matthias, and Joseph Guinness. "A general framework for Vecchia approximations of Gaussian processes." arXiv preprint arXiv:1708.06302 (2017).
+#'
+#' @export
+#'
+#' @examples
+#' n    <- 15^2
+#' m    <- 10
+#' locs <- matrix(runif(n * 2, 0, 1), n, 2)
+#'
+#' covparms   <- c(1, 0.1, 10)
+#' sigma      <- cov_expo_aniso(locs = locs, covparms = covparms)
+#'
+#' out.euclidean <- corrvecchia_knownCovparms(locs = locs, m = m, ordering = "maxmin", coordinate = NULL, dist.ordering = "euclidean", dist.conditioning = "euclidean", covmodel = cov.aniso, covparms = covparms)
+#' out.correlation <- corrvecchia_knownCovparms(locs = locs, m = m, ordering = "maxmin", coordinate = NULL, dist.ordering = "correlation", dist.conditioning = "correlation", covmodel = cov.aniso, covparms = covparms)
+#'
+#' out.euclidean$ord
+#' out.correlation$ord
+corrvecchia_knownCovparms <- function(locs, m, ordering = "maxmin", coordinate = NULL, dist.ordering = "correlation", dist.conditioning = "correlation", covmodel, covparms = NULL) {
 
   .checkargs_locsm_model(locs = locs, m = m)
 
@@ -22,6 +60,9 @@ corrvecchia_knownCovparms <- function(locs, m, ordering = "maxmin", coordinate =
   .checkargs_conditioning_model(dist.conditioning = dist.conditioning)
 
   .checkargs_covmodel_model(covmodel = covmodel, covparms = covparms, locs = locs, n = n, ncheck = 10)
+
+  # By default, we assume that a covariance matrix is a correlation matrix
+  if(is.null(covparms)) covparms <- c(1)
 
   # calculate a correlation matrix
   if(dist.ordering == "correlation" | dist.conditioning == "correlation") {
@@ -40,7 +81,7 @@ corrvecchia_knownCovparms <- function(locs, m, ordering = "maxmin", coordinate =
 
   } else if(ordering == "maxmin" & dist.ordering == "correlation") {
 
-    ord         <- .order_maxmin_correlation(locs = locs, dinv = rho, covmodel = covmodel, covparms = covparms, initial.pt = initial.pt)
+    ord         <- .order_maxmin_correlation(locs = locs, dinv = rho, covmodel = covmodel, covparms = covparms, initial.pt = NULL)
 
   } else {
 
