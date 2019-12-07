@@ -167,7 +167,7 @@
 
     if(identical(covlocs, "Oops")) stop("Either the covariance function (covmodel) or its parameters (covparms) do not work properly.")
 
-    covlocs <- matrix(covlocs, n, n, byrow = F)
+    covlocs <- as.matrix(covlocs)
 
   } else if(is.matrix(covmodel) | is.data.frame(covmodel)) {
 
