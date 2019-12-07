@@ -10,7 +10,7 @@
 #'
 #' @description From a location matrix (\code{locs}) and a vector with covariance parameters (\code{covparms}), this function returns an isotropic exponential covariance matrix which is one of the simplest covariance matrices.
 #'
-#' @param locs A matrix with \code{n} rows and \code{p} columns. Each row of locs gives a point in R^d
+#' @param locs A matrix with \code{n} rows and \code{p} columns. Each row of locs gives a point in R^p
 #' @param covparms A vector with covariance parameters in the form (variance, range)
 #'
 #' @section Parametrization: The covariance parameter vector is (variance, range) = \eqn{(\sigma^2 , r)}. The form of the covariance is \deqn{ C(x, y) = \sigma^2 exp( || x - y || / r)} where \eqn{x} and \eqn{y} are locations in R^p.

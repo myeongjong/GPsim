@@ -7,7 +7,7 @@
 cov_expo_iso(locs, covparms)
 }
 \arguments{
-\item{locs}{A matrix with \code{n} rows and \code{p} columns. Each row of locs gives a point in R^d}
+\item{locs}{A matrix with \code{n} rows and \code{p} columns. Each row of locs gives a point in R^p}
 
 \item{covparms}{A vector with covariance parameters in the form (variance, range)}
 }
