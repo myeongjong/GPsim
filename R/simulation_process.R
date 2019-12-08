@@ -1,10 +1,7 @@
 ####################################################################################
 ###   Author: Myeongjong Kang (kmj.stat@gmail.com)
 ###
-###   Overview: This script includes several R functions for
-###
-###   Description:
-###
+###   Overview: This script includes several small R functions which compose the simulate_gp() function.
 ###
 ####################################################################################
 
