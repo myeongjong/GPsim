@@ -37,9 +37,9 @@ fields::quilt.plot(realization$locs[, 1], realization$locs[, 2], realization$y, 
 In this section, we apply two differnt vecchia approaches: one is the Vecchia approach with Euclidean distance (standard Vecchia apporximation) and the other is the Vecchia approximation with correlation-based distance $1-\rho$ (correlation-based Vecchia approximation).
 
 ```{r fitting, warning = F, message = F, tidy = T}
-vecchia.fit.euclidean <- corrvecchia_knownCovparms(locs = realization$locs, m = 10, ordering = "maxmin", coordinate = NULL, dist.ordering = "euclidean", dist.conditioning = "euclidean", covmodel = realization$covmat.correted, covparms = NULL)
+vecchia.fit.euclidean <- corrvecchia_knownCovparms(locs = realization$locs, m = 10, ordering = "maxmin", coordinate = NULL, dist.ordering = "euclidean", dist.conditioning = "euclidean", covmodel = realization$covmat.correted, covparms = c(1))
 
-vecchia.fit.correlation <- corrvecchia_knownCovparms(locs = realization$locs, m = 10, ordering = "maxmin", coordinate = NULL, dist.ordering = "correlation", dist.conditioning = "correlation", covmodel = realization$covmat.correted, covparms = NULL)
+vecchia.fit.correlation <- corrvecchia_knownCovparms(locs = realization$locs, m = 10, ordering = "maxmin", coordinate = NULL, dist.ordering = "correlation", dist.conditioning = "correlation", covmodel = realization$covmat.correted, covparms = c(1))
 ```
 
 ## Comparing performance of euclidean and correlation-based Vecchia approaches
@@ -66,7 +66,45 @@ kls.correlation <- kldiv(realization$covmat.correted, sigma.hat)
 c(kls.euclidean, kls.correlation)
 ```
 
+## generating a realization of a GP with user-specific mean and covariance functions
 
+Suppose one hope to generate a realization of a GP with his/her own mean and covariance functions. Let us assume that the mean function is the zero function and the covariance function is the wave covariance function. Then, to begin with, one should declare those two functions. The wave covariance function can be plotted as below:
+
+```{r wave, warning = F, message = T, tidy = T, fig.height = 4, fig.width = 4.5, fig.align = "center"}
+mean_zero <- function(locs, meanparms) rep(0, nrow(locs))
+
+# covparms = c(sigma, period)
+cov_wave <- function(locs, covparms) {
+  
+  h       <- fields::rdist(locs)
+  
+  ind     <- which(h < 1e-8, arr.ind = T)
+  c       <- covparms[1] * sin(h / covparms[2])* (covparms[2] / h)
+  c[ind]  <- covparms[1]
+  
+  return(c)
+}
+
+n     <- 10^2
+locs  <- matrix(runif(n * 2, 0, 1), n, 2)
+h     <- fields::rdist(locs)
+ind   <- order(unlist(h))
+hord  <- unlist(h)[ind]
+
+covparms  <- c(1, 0.1)
+covh      <- cov_wave(locs = locs, covparms = covparms)
+covhord   <- unlist(covh)[ind]
+plot(hord, covhord, type = 'l', ylim = c(-0.5, 1), col = 1, xlab = 'distance', ylab = 'covariance')
+abline(h = 0, col = 'gray')
+```
+
+Then, we can generate a realization of the gaussian process with the above mean and covariance functions only using the simulate_gp() function. The realization can be plotted as below:
+
+```{r mygeneration, warning = F, message = T, tidy = T, fig.height = 4, fig.width = 4.5, fig.align = "center"}
+realization <- simulate_gp(locs = "random", n = 15^2, p = 2, meanmodel = mean_zero, meanparms = NULL, covmodel = cov_wave, covparms = covparms, pivot = FALSE, correction = "GMW81", tol = sqrt(.Machine$double.eps), seed = 2020)
+
+fields::quilt.plot(realization$locs[, 1], realization$locs[, 2], realization$y, main = "A realization of the standard GP", xlab = "loc1", ylab = "loc2")
+```
 
 
 
