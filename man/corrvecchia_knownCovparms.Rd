@@ -30,7 +30,7 @@ If \code{dist.conditioning} is "correlation," then correlation based distance 1-
 \item{covmodel}{If \code{covmodel} is a function, then \code{covmodel} is a covariance function.
 If \code{covmodel} is a matrix, then \code{covmodel} is a covariance matrix.}
 
-\item{covparms}{At \code{NULL} by default. If \code{covparms} is \code{NULL}, then \code{covmodel} is considered as a correlation matrix.}
+\item{covparms}{A numerical vector with covariance parameters. It must be compatible with the argument \code{covmodel}. At \code{NULL} by default}
 }
 \value{
 An object that specifies the Vecchia approximation for later use in likelihood evaluation or prediction. We are doing research on this.
