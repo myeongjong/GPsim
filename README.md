@@ -15,7 +15,8 @@ Installation
 # install.packages("devtools")
 devtools::install_github("myeongjong/GPsim")
 
-# If you need vignettes ...
+# # If you need vignettes ...
+# install.packages(c("knitr", "formatR"))
 # devtools::install_github("myeongjong/GPsim", build_vignettes = T)
 ```
 
