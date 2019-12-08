@@ -43,8 +43,8 @@
 #' covparms   <- c(1, 0.1, 10)
 #' sigma      <- cov_expo_aniso(locs = locs, covparms = covparms)
 #'
-#' out.euclidean <- corrvecchia_knownCovparms(locs = locs, m = m, ordering = "maxmin", coordinate = NULL, dist.ordering = "euclidean", dist.conditioning = "euclidean", covmodel = cov.aniso, covparms = covparms)
-#' out.correlation <- corrvecchia_knownCovparms(locs = locs, m = m, ordering = "maxmin", coordinate = NULL, dist.ordering = "correlation", dist.conditioning = "correlation", covmodel = cov.aniso, covparms = covparms)
+#' out.euclidean <- corrvecchia_knownCovparms(locs = locs, m = m, ordering = "maxmin", coordinate = NULL, dist.ordering = "euclidean", dist.conditioning = "euclidean", covmodel = cov_expo_aniso, covparms = covparms)
+#' out.correlation <- corrvecchia_knownCovparms(locs = locs, m = m, ordering = "maxmin", coordinate = NULL, dist.ordering = "correlation", dist.conditioning = "correlation", covmodel = cov_expo_aniso, covparms = covparms)
 #'
 #' out.euclidean$ord
 #' out.correlation$ord
