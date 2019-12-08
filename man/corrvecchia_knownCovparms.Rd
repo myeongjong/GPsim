@@ -28,7 +28,8 @@ If \code{dist.conditioning} is "euclidean," then euclidean distance is used to c
 If \code{dist.conditioning} is "correlation," then correlation based distance 1-rho is used to construct conditioning sets.}
 
 \item{covmodel}{If \code{covmodel} is a function, then \code{covmodel} is a covariance function.
-If \code{covmodel} is a matrix, then \code{covmodel} is a covariance matrix.}
+If \code{covmodel} is a matrix, then \code{covmodel} is a covariance matrix.
+Please use \code{covparms = c(1)} if \code{covmodel} is a correlation matrix.}
 
 \item{covparms}{A numerical vector with covariance parameters. It must be compatible with the argument \code{covmodel}. At \code{NULL} by default}
 }
