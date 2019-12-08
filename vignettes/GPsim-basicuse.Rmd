@@ -20,7 +20,7 @@ This vignette is aimed at breifly introducing how to use functions in GPsim. Thi
 
 In this section, we generate a realization of a gaussian process. Its mean function is a zero function and its covariance function is an anisotropic exponential covariance function with variance of 1, range of 0.1, and degree of anisotropy of 10. This output can be visualized using the quilt.plot function in the package fields.
 
-```{r generation, warning = F, message = T, tidy = T, fig.height = 4, fig.width = 4.5, fig.align = "center", echo=T}
+```{r generation, warning = F, message = T, tidy = T, fig.height = 4, fig.width = 4.5, fig.align = "center", eval=T}
 library(GPsim)
 
 set.seed(2019)
@@ -36,7 +36,7 @@ fields::quilt.plot(realization$locs[, 1], realization$locs[, 2], realization$y, 
 
 In this section, we apply two differnt vecchia approaches: one is the Vecchia approach with Euclidean distance (standard Vecchia apporximation) and the other is the Vecchia approximation with correlation-based distance $1-\rho$ (correlation-based Vecchia approximation).
 
-```{r fitting, warning = F, message = F, tidy = T, echo=T}
+```{r fitting, warning = F, message = F, tidy = T, eval=T}
 vecchia.fit.euclidean <- corrvecchia_knownCovparms(locs = realization$locs, m = 10, ordering = "maxmin", coordinate = NULL, dist.ordering = "euclidean", dist.conditioning = "euclidean", covmodel = realization$covmat.correted, covparms = NULL)
 
 vecchia.fit.correlation <- corrvecchia_knownCovparms(locs = realization$locs, m = 10, ordering = "maxmin", coordinate = NULL, dist.ordering = "correlation", dist.conditioning = "correlation", covmodel = realization$covmat.correted, covparms = NULL)
@@ -48,7 +48,7 @@ In this section, we compare the above two Vecchia approaches. To evaluate them, 
 
 As you can see below, we can estimate the covariance matrix of the GP using each Vecchia approach. For the standard Vecchia approximation, Kullback Leiber (KL) divergence between true GP and approximate GP is 0.404. On the other hand, for the correlation-based Vecchia approximation, that is only 0.000556. In sum, it is clear that the correlation-based Vecchia approximation performs better than the stadard one in cases of anisotropic covariance functions.
 
-```{r comparison, warning = F, message = F, tidy = T, echo=T}
+```{r comparison, warning = F, message = F, tidy = T, eval=T}
 library(GPvecchia)
 
 sigma.ord       <- cov_expo_aniso(locs = vecchia.fit.euclidean$locsord, covparms = covparms)
